@@ -1,0 +1,55 @@
+.tg-site-header-bottom {
+  background: #FDE4E5 !important;
+}
+
+.tg-primary-menu > div ul li a {
+  color: black !important;
+}
+
+.tg-icon.tg-icon-shopping-cart,
+.count {
+  display: none !important;
+}
+
+.elementor-2411 .elementor-element.elementor-element-b9f1d31 .elementor-heading-title {
+  -webkit-text-stroke: 1px white;
+  color: #F8C9D0;
+  font-size: 120px;
+}
+
+.tg-page-header__title, .tg-page-header .breadcrumb-trail ul li {
+  display: none !important;
+}
+
+.forminator-button.forminator-button-submit {
+  float: right !important;
+}
+
+#submit.submit {
+	float: right;
+}
+
+.logged-in-as {
+  display: none;
+}
+
+textarea {
+  margin-top: 15px !important;
+}
+
+.post-navigation {
+  display: none;
+}
+
+#menu-item-3576 a, #menu-item-4680 a, #menu-item-4681 a {
+	color: white;
+}
+
+
+.entry-content a {
+		color: black;
+}
+
+.tg-site-header-top ul.menu li a {
+  color: white;
+}
