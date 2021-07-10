@@ -18,7 +18,7 @@ Completed tasks
 **Extra**
 
 - Testimonials - add testimonials at the bottom between image and footer - ✅
-- Login / Signup - popup box - ✅
+- Login / Signup - (not popup box) - ✅
 - Make forms in ansøg her and kontakt form - ✅
 - Planway - embed Planway - ✅
 - Chat - add live chat feature - ✅
