@@ -4,3 +4,18 @@
 </h1>
 
 Migrating the BeautyBoosters website from Wix over to Wordpress
+
+- Tips & Tricks - ✅
+- Ansøg Her - ✅
+- Kontakt - ✅
+- Jobs - ✅
+- Gavekort - ✅
+- For virksomheder - ✅
+
+**Extra**
+
+- Testimonials - add testimonials at the bottom between image and footer - ✅
+- Login / Signup - popup box - ✅
+- Make forms in ansøg her and kontakt form - ✅
+- Planway - embed Planway - ✅
+- Chat - add live chat feature - ✅
