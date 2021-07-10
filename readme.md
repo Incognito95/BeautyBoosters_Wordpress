@@ -3,7 +3,7 @@
 
 Migrating the BeautyBoosters website from Wix over to Wordpress
 
-**Completed tasks:**
+**Completed pages:**
 - Tips & Tricks - ✅
 - Ansøg Her - ✅
 - Kontakt - ✅
@@ -11,7 +11,7 @@ Migrating the BeautyBoosters website from Wix over to Wordpress
 - Gavekort - ✅
 - For virksomheder - ✅
 
-**Extra:**
+**Completed tasks:**
 - Testimonials - add testimonials at the bottom between image and footer - ✅
 - Login / Signup - (not popup box) - ✅
 - Make forms in ansøg her and kontakt form - ✅
