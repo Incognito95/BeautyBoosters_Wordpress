@@ -5,6 +5,9 @@
 
 Migrating the BeautyBoosters website from Wix over to Wordpress
 
+
+Completed tasks
+
 - Tips & Tricks - ✅
 - Ansøg Her - ✅
 - Kontakt - ✅
