@@ -2,8 +2,8 @@
 Tags: css, visual css, css editor, design, customize
 Requires at least: 3.9
 Tested up to: 5.7
-Stable tag: 1.3.0
-Build time: 2021-06-14T12:29:46+02:00
+Stable tag: 1.3.1
+Build time: 2021-07-10T12:38:53+02:00
 License: GPLv2 or later
 Contributors: gpriday, alexgso
 Donate link: https://siteorigin.com/downloads/premium/
@@ -67,9 +67,12 @@ Free support is available on the [SiteOrigin support forums](https://siteorigin.
 
 [SiteOrigin Premium](https://siteorigin.com/downloads/premium/) enhances SiteOrigin CSS with a Google Web Font Selector. Choose from hundreds of beautiful web fonts right in the visual editor.
 
-SiteOrigin Premium also includes access to our next-level email support service, perfect for those times when you need fast and effective technical support.
+SiteOrigin Premium includes access to our professional email support service, perfect for those times when you need fast and effective technical support. We're standing by to assist you in any way we can.
 
 == Changelog ==
+
+= 1.3.1 - 10 July 2021 =
+* Updated the Plugins page action link list.
 
 = 1.3.0 - 14 June 2021 =
 * Inspector: Added a new Border Radius setting to the Decoration tab.

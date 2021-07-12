@@ -2,7 +2,7 @@
 /*
 Plugin Name: SiteOrigin CSS
 Description: An advanced CSS editor from SiteOrigin.
-Version: 1.3.0
+Version: 1.3.1
 Author: SiteOrigin
 Author URI: https://siteorigin.com
 Plugin URI: https://siteorigin.com/css/
@@ -14,7 +14,7 @@ Text Domain: so-css
 // Handle the legacy CSS editor that came with SiteOrigin themes
 include plugin_dir_path( __FILE__ ) . 'inc/legacy.php';
 
-define( 'SOCSS_VERSION', '1.3.0' );
+define( 'SOCSS_VERSION', '1.3.1' );
 define( 'SOCSS_JS_SUFFIX', '.min' );
 
 /**
@@ -434,7 +434,9 @@ class SiteOrigin_CSS {
 		}
 		$links['css_editor'] = '<a href="' . admin_url( 'themes.php?page=so_custom_css' ) . '">' . __( 'CSS Editor', 'so-css' ) . '</a>';
 		$links['support'] = '<a href="https://siteorigin.com/thread/" target="_blank">' . __( 'Support', 'so-css' ) . '</a>';
-		
+		if ( apply_filters( 'siteorigin_premium_upgrade_teaser', true ) && ! defined( 'SITEORIGIN_PREMIUM_VERSION' ) ) {
+			$links['addons'] = '<a href="https://siteorigin.com/downloads/premium/?featured_addon=plugin/web-font-selector" style="color: #3db634" target="_blank" rel="noopener noreferrer">' . __( 'Addons', 'so-css' ) . '</a>';
+		}
 		return $links;
 	}
 	

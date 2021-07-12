@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: so-css.php:3, so-css.php:447
+#: so-css.php:3, so-css.php:449
 msgid "SiteOrigin CSS"
 msgstr ""
 
@@ -72,39 +72,43 @@ msgstr ""
 msgid "Support"
 msgstr ""
 
-#: so-css.php:450
+#: so-css.php:438
+msgid "Addons"
+msgstr ""
+
+#: so-css.php:452
 msgid "Changes apply to %s and its child themes"
 msgstr ""
 
-#: so-css.php:451
+#: so-css.php:453
 msgid "Save CSS"
 msgstr ""
 
-#: so-css.php:458
+#: so-css.php:460
 msgid "Editing CSS for: %s"
 msgstr ""
 
-#: so-css.php:463
+#: so-css.php:465
 msgid "Changes apply to the %s %s when the current theme is %s or its child themes"
 msgstr ""
 
-#: so-css.php:470
+#: so-css.php:472
 msgid "Save %s CSS"
 msgstr ""
 
-#: so-css.php:483
+#: so-css.php:485
 msgid "Revert to this revision"
 msgstr ""
 
-#: so-css.php:592
+#: so-css.php:594
 msgid "%d chars"
 msgstr ""
 
-#: so-css.php:592
+#: so-css.php:594
 msgid "Latest"
 msgstr ""
 
-#: so-css.php:598
+#: so-css.php:600
 msgid "No revisions yet."
 msgstr ""
 
