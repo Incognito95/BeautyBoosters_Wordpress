@@ -1,4 +1,9 @@
 <?php
+$preview_dialog = 'preview_' . forminator_get_prefix( static::$module_slug, 'c', false, true );
+$export_dialog  = 'export_' . forminator_get_prefix( static::$module_slug, 'c' );
+$post_type      = 'forminator_' . forminator_get_prefix( static::$module_slug, '', false, true );
+$soon           = 'quiz' === static::$module_slug;
+
 if ( $count > 0 || $is_search ) {
 	$count_active = $this->countModules( 'publish' );
 	// Count total entries from last 30 days.
@@ -23,7 +28,7 @@ if ( $count > 0 || $is_search ) {
 						sprintf( 'Active %s', forminator_get_prefix( static::$module_slug, '', true, true ) ),
 						esc_html( $count_active ), 'forminator' ) ); ?></span>
 
-				<form action="" method="get" id="forminator-search-modules" class="forminator-search-modules">
+				<form id="forminator-search-modules" class="forminator-search-modules" data-searched="false">
 
 					<div class="sui-row">
 
@@ -33,8 +38,12 @@ if ( $count > 0 || $is_search ) {
 
 								<div class="sui-control-with-icon">
 									<button class="forminator-search-submit"><i class="sui-icon-magnifying-glass-search"></i></button>
-									<input type="text" name="search" value="<?php esc_attr_e( $search_keyword ); ?>" placeholder="<?php printf( esc_attr__( 'Search %s...', 'forminator' ), static::$module_slug ); ?>" id="forminator-module-search" class="sui-form-control">
+									<input type="text" name="search" value="<?php echo esc_attr( $search_keyword ); ?>" placeholder="<?php printf( esc_attr__( 'Search %s...', 'forminator' ), static::$module_slug ); ?>" id="forminator-module-search" class="sui-form-control">
 								</div>
+								<button role="button" class="search-reset sui-button-icon" title="<?php esc_attr_e( 'Reset search', 'forminator' ); ?>">
+									<span class="sui-icon-cross-close" aria-hidden="true"></span>
+									<span class="sui-screen-reader-text"><?php esc_html_e( 'Reset search', 'forminator' ); ?></span>
+								</button>
 
 							</div>
 
@@ -42,6 +51,15 @@ if ( $count > 0 || $is_search ) {
 
 					</div>
 
+					<input type="hidden" name="module_slug" value="<?php echo esc_attr( static::$module_slug ); ?>" />
+					<input type="hidden" name="preview_title" value="<?php echo esc_attr( $preview_title ); ?>" />
+					<input type="hidden" name="sql_month_start_date" value="<?php echo esc_attr( $sql_month_start_date ); ?>" />
+					<input type="hidden" name="wizard_page" value="<?php echo esc_attr( $wizard_page ); ?>" />
+
+					<input type="hidden" name="preview_dialog" value="<?php echo esc_attr( $preview_dialog ); ?>" />
+					<input type="hidden" name="export_dialog" value="<?php echo esc_attr( $export_dialog ); ?>" />
+					<input type="hidden" name="post_type" value="<?php echo esc_attr( $post_type ); ?>" />
+					<input type="hidden" name="soon" value="<?php echo esc_attr( $soon ); ?>" />
 					<input type="hidden" name="page" value="<?php echo filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING ); ?>" />
 					<?php
 						wp_nonce_field( $search_module_nonce, $search_module_nonce, false );

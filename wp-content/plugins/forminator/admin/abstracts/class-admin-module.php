@@ -176,6 +176,45 @@ abstract class Forminator_Admin_Module {
 	}
 
 	/**
+	 * Prepare settings
+	 *
+	 * @param array $original_settings Sent settings.
+	 * @return array
+	 */
+	protected static function validate_settings( $original_settings ) {
+		// Sanitize settings.
+		$settings = forminator_sanitize_field( $original_settings );
+
+		// Sanitize custom css.
+		if ( isset( $original_settings['custom_css'] ) ) {
+			$settings['custom_css'] = sanitize_textarea_field( $original_settings['custom_css'] );
+		}
+
+		// Sanitize admin email message.
+		if ( isset( $original_settings['admin-email-editor'] ) ) {
+			$settings['admin-email-editor'] = $original_settings['admin-email-editor'];
+		}
+
+		// Sanitize quiz description.
+		if ( isset( $original_settings['quiz_description'] ) ) {
+			$settings['quiz_description'] = $original_settings['quiz_description'];
+		}
+
+		if ( isset( $original_settings['social-share-message'] ) ) {
+			$settings['social-share-message'] = forminator_sanitize_textarea( $original_settings['social-share-message'] );
+		}
+
+		if ( isset( $original_settings['msg_count'] ) ) {
+			// Backup, we allow html here.
+			$settings['msg_count'] = $original_settings['msg_count'];
+		}
+
+		$settings = apply_filters( 'forminator_builder_data_settings_before_saving', $settings, $original_settings );
+
+		return $settings;
+	}
+
+	/**
 	 * Highlight submenu on admin page
 	 *
 	 * @since 1.1

@@ -426,7 +426,7 @@ class Forminator_Addon_Admin_Ajax {
 		if ( method_exists( $addon, 'get_api' ) ) {
 			$api = $addon->get_api();
 			if ( method_exists( $api, 'get_all_lists' ) ) {
-				$lists = $api->get_all_lists();
+				$lists = $api->get_all_lists( true );
 			}
 		}
 		$html = Forminator_Addon_Settings_Abstract::email_lists_options( $lists );

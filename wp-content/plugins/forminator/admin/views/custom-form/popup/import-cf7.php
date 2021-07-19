@@ -457,7 +457,7 @@ $image_empty2x = forminator_plugin_url() . 'assets/images/forminator-summary@2x.
 <div class="forminator-cf7-imported-fail sui-hidden">
 
 	<div class="sui-box-body wpmudev-popup-form">
-        <?php $support_url = FORMINATOR_PRO ? 'https://wpmudev.com/hub/support/' :'https://wordpress.org/support/plugin/forminator'; ?>
+        <?php $support_url = FORMINATOR_PRO ? 'https://wpmudev.com/hub2/support/' :'https://wordpress.org/support/plugin/forminator'; ?>
 		<p><?php printf( esc_html__( 'We have encountered an error while importing your forms from Contact Form 7 and selected add-ons. Unable to solve this? Contact our %1$ssupport%2$s team for further help.', 'forminator' ), '<a href="' . $support_url . '" target="_blank">', '</a>' ); ?></p>
 
 		<div class="sui-notice sui-notice-error">

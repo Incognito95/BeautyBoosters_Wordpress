@@ -111,6 +111,8 @@ class Forminator_Admin_AJAX {
 		add_action( 'wp_ajax_forminator_reset_tracking_data', array( $this, 'reset_tracking_data' ) );
 
 		add_action( 'wp_ajax_forminator_dismiss_prelaunch_subscriptions', array( $this, 'dismiss_prelaunch_subscriptions_notice' ) );
+
+		add_action( 'wp_ajax_forminator_module_search', array( $this, 'module_search' ) );
 	}
 
 	/**
@@ -134,128 +136,40 @@ class Forminator_Admin_AJAX {
 			$quiz_data = json_decode( stripslashes( $quiz_data ), true );
 		}
 
-		$questions     = array();
-		$results       = array();
 		$id            = isset( $submitted_data['form_id'] ) ? intval( $submitted_data['form_id'] ) : 0;
+		$settings      = isset( $quiz_data['settings'] ) ? $quiz_data['settings'] : array();
 		$title         = isset( $submitted_data['quiz_title'] ) ? sanitize_text_field( $submitted_data['quiz_title'] ) : sanitize_text_field( $submitted_data['formName'] );
 		$status        = isset( $submitted_data['status'] ) ? sanitize_text_field( $submitted_data['status'] ) : '';
 		$version       = isset( $submitted_data['version'] ) ? sanitize_text_field( $submitted_data['version'] ) : '1.0';
-		$action        = false;
-		$notifications = array();
+		$template      = new stdClass();
 
-		if ( is_null( $id ) || $id <= 0 ) {
-			$form_model = new Forminator_Quiz_Model();
-			$action     = 'create';
-
-			if ( empty( $status ) ) {
-				$status = Forminator_Poll_Model::STATUS_PUBLISH;
-			}
-		} else {
-			$form_model = Forminator_Quiz_Model::model()->load( $id );
-			$action     = 'update';
-
-			if ( ! is_object( $form_model ) ) {
-				wp_send_json_error( __( "Quiz model doesn't exist", 'forminator' ) );
-			}
-
-			if ( empty( $status ) ) {
-				$status = $form_model->status;
-			}
-
-			//we need to empty fields cause we will send new data
-			$form_model->clear_fields();
-		}
-
-		$action  = isset( $submitted_data['action'] ) ? $submitted_data['action'] : '';
-
-		// Detect action
-		$form_model->quiz_type = 'knowledge';
-		if ( 'forminator_save_quiz_nowrong' === $action ) {
-			$form_model->quiz_type = 'nowrong';
-		}
-
+		$template->type = isset( $submitted_data['action'] ) ? $submitted_data['action'] : '';
 		// Check if results exist
 		if ( isset( $quiz_data['results'] ) && is_array( $quiz_data['results'] ) ) {
-			$results = $quiz_data['results'];
-			foreach ( $quiz_data['results'] as $key => $result ) {
-				$description = '';
-				if ( isset( $result['description'] ) ) {
-					$description = $result['description'];
-				}
-				$results[ $key ]['description'] = $description;
-			}
-
-			$form_model->results = $results;
+			$template->results = $quiz_data['results'];
 		}
 
 		// Check if answers exist
 		if ( isset( $quiz_data['questions'] ) ) {
-			$questions = forminator_sanitize_field( $quiz_data['questions'] );
+			$template->questions = $quiz_data['questions'];
 		}
 
-		// Check if questions exist
-		if ( isset( $questions ) ) {
-			foreach ( $questions as &$question ) {
-				$question['type'] = $form_model->quiz_type;
-				if ( ! isset( $question['slug'] ) || empty( $question['slug'] ) ) {
-					$question['slug'] = uniqid();
-				}
-			}
+		if ( isset( $quiz_data['settings'] ) ) {
+			$settings = $quiz_data['settings'];
 		}
-
-		$form_model->set_var_in_array( 'name', 'formName', $submitted_data );
-
-		// Handle quiz questions
-		$form_model->questions = $questions;
-
-		$settings = self::validate_settings( $quiz_data );
+		$settings['version'] = $version;
+		$template->settings  = $settings;
 
 		if ( isset( $quiz_data['notifications'] ) ) {
-			$notifications = forminator_sanitize_field( $quiz_data['notifications'] );
-
-			$count = 0;
-			foreach( $notifications as $notification ) {
-				if ( isset( $notification['email-editor'] ) ) {
-					$notifications[ $count ]['email-editor'] = $quiz_data['notifications'][ $count ]['email-editor'];
-				}
-
-				$count++;
-			}
+			$template->notifications = $quiz_data['notifications'];
 		}
 
-		// version
-		$settings['version'] = $version;
-
-		$form_model->settings = $settings;
-		$form_model->notifications = $notifications;
-
-		$quiz_data['formName'] = $title;
-
-		// status
-		$form_model->status = $status;
-
-		// Save data
-		$id = $form_model->save();
-
-		$type = $form_model->quiz_type;
-
-		/**
-		 * Action called after quiz saved to database
-		 *
-		 * @since 1.11
-		 *
-		 * @param int    $id - quiz id
-		 * @param string $type - quiz type
-		 * @param string $status - quiz status
-		 * @param array  $questions - quiz questions
-		 * @param array  $results - quiz results
-		 *
-		 */
-		do_action( 'forminator_quiz_action_' . $action, $id, $type, $status, $questions, $results );
-
-		Forminator_Render_Form::regenerate_css_file( $id );
-
-		wp_send_json_success( $id );
+		$id = Forminator_Quiz_Admin::update( $id, $title, $status, $template );
+		if ( is_wp_error( $id ) ) {
+			wp_send_json_error( $id->get_error_message() );
+		} else {
+			wp_send_json_success( $id );
+		}
 	}
 
 	/**
@@ -278,100 +192,26 @@ class Forminator_Admin_AJAX {
 			$poll_data = json_decode( stripslashes( $poll_data ), true );
 		}
 
-		$answers  = array();
+		$settings = isset( $poll_data['settings'] ) ? $poll_data['settings'] : array();
 		$id       = isset( $submitted_data['form_id'] ) ? intval( $submitted_data['form_id'] ) : 0;
+		$title    = sanitize_text_field( $submitted_data['formName'] );
 		$status   = isset( $submitted_data['status'] ) ? sanitize_text_field( $submitted_data['status'] ) : '';
 		$version  = isset( $submitted_data['version'] ) ? sanitize_text_field( $submitted_data['version'] ) : '1.0';
-		$action   = false;
+		$template = new stdClass();
 
-		if ( is_null( $id ) || $id <= 0 ) {
-			$form_model = new Forminator_Poll_Model();
-			$action     = 'create';
-
-			if ( empty( $status ) ) {
-				$status = Forminator_Poll_Model::STATUS_PUBLISH;
-			}
-		} else {
-			$form_model = Forminator_Poll_Model::model()->load( $id );
-			$action     = 'update';
-
-			if ( ! is_object( $form_model ) ) {
-				wp_send_json_error( __( "Poll model doesn't exist", 'forminator' ) );
-			}
-
-			if ( empty( $status ) ) {
-				$status = $form_model->status;
-			}
-
-			//we need to empty fields cause we will send new data
-			$form_model->clear_fields();
-		}
-
-		$form_model->set_var_in_array( 'name', 'formName', $submitted_data );
-
-		// Check if answers exist
 		if ( isset( $poll_data['answers'] ) ) {
-			$answers = forminator_sanitize_field( $poll_data['answers'] );
-			$answers = wp_slash( $answers );
+			$template->answers = $poll_data['answers'];
 		}
 
-		$settings = self::validate_settings( $poll_data );
-
-		// version
 		$settings['version'] = $version;
+		$template->settings  = $settings;
 
-		$form_model->settings = $settings;
-
-		foreach ( $answers as $answer ) {
-			$field_model  = new Forminator_Form_Field_Model();
-			$answer['id'] = $answer['element_id'];
-			$field_model->import( $answer );
-			$field_model->slug = $answer['element_id'];
-			$form_model->add_field( $field_model );
+		$id = Forminator_Poll_Admin::update( $id, $title, $status, $template );
+		if ( is_wp_error( $id ) ) {
+			wp_send_json_error( $id->get_error_message() );
+		} else {
+			wp_send_json_success( $id );
 		}
-
-		// status
-		$form_model->status = $status;
-
-		// Save data
-		$id = $form_model->save();
-
-		/**
-		* Action called after poll saved to database
-		*
-		* @since 1.11
-		*
-		* @param int    $id - poll id
-		* @param string $status - poll status
-		* @param array  $answers - poll answers
-		* @param array  $settings - poll settings
-		*
-		*/
-		do_action( 'forminator_poll_action_' . $action, $id, $status, $answers, $settings );
-
-		// add privacy settings to global option
-		$override_privacy = false;
-		if ( isset( $settings['enable-ip-address-retention'] ) ) {
-			$override_privacy = filter_var( $settings['enable-ip-address-retention'], FILTER_VALIDATE_BOOLEAN );
-		}
-		$retention_number = null;
-		$retention_unit   = null;
-		if ( $override_privacy ) {
-			$retention_number = 0;
-			$retention_unit   = 'days';
-			if ( isset( $settings['ip-address-retention-number'] ) ) {
-				$retention_number = (int) $settings['ip-address-retention-number'];
-			}
-			if ( isset( $settings['ip-address-retention-unit'] ) ) {
-				$retention_unit = $settings['ip-address-retention-unit'];
-			}
-		}
-
-		forminator_update_poll_submissions_retention( $id, $retention_number, $retention_unit );
-
-		Forminator_Render_Form::regenerate_css_file( $id );
-
-		wp_send_json_success( $id );
 	}
 
 	/**
@@ -390,11 +230,11 @@ class Forminator_Admin_AJAX {
 		$form_data      = $submitted_data['data'];
 		$form_data      = json_decode( stripslashes( $form_data ), true );
 		$fields         = array();
-		$notifications  = array();
-		$id      = isset( $submitted_data['form_id'] ) ? intval( $submitted_data['form_id'] ) : 0;
-		$title   = sanitize_text_field( $submitted_data['formName'] );
-		$status  = isset( $submitted_data['status'] ) ? sanitize_text_field( $submitted_data['status'] ) : '';
-		$version = isset( $submitted_data['version'] ) ? sanitize_text_field( $submitted_data['version'] ) : '1.0';
+		$id             = isset( $submitted_data['form_id'] ) ? intval( $submitted_data['form_id'] ) : 0;
+		$title          = sanitize_text_field( $submitted_data['formName'] );
+		$status         = isset( $submitted_data['status'] ) ? sanitize_text_field( $submitted_data['status'] ) : '';
+		$version        = isset( $submitted_data['version'] ) ? sanitize_text_field( $submitted_data['version'] ) : '1.0';
+		$template       = new stdClass();
 		$action  = false;
 
 		if ( is_null( $id ) || $id <= 0 ) {
@@ -420,143 +260,28 @@ class Forminator_Admin_AJAX {
 			$form_model->clear_fields();
 		}
 
-		$form_model->set_var_in_array( 'name', 'formName', $submitted_data, 'forminator_sanitize_field' );
-
-		// Build the fields
+		// Build the fields.
 		if ( isset( $form_data ) ) {
 			$fields = $form_data['wrappers'];
 			unset( $form_data['wrappers'] );
 		}
-
-		foreach ( $fields as $row ) {
-			foreach ( $row['fields'] as $f ) {
-				$field          = new Forminator_Form_Field_Model();
-				$field->form_id = $row['wrapper_id'];
-				$field->slug    = $f['element_id'];
-				unset( $f['element_id'] );
-				$field->import( $f );
-				$form_model->add_field( $field );
-			}
-		}
-
-		$settings = self::validate_settings( $form_data );
+		$template->fields = $fields;
 
 		if ( isset( $form_data['notifications'] ) ) {
-			$notifications = forminator_sanitize_field( $form_data['notifications'] );
-
-			$count = 0;
-			foreach( $notifications as $notification ) {
-				if ( isset( $notification['email-editor'] ) ) {
-					$notifications[ $count ]['email-editor'] = $form_data['notifications'][ $count ]['email-editor'];
-				}
-				if ( isset( $notification['email-editor-method-email'] ) ) {
-					$notifications[ $count ]['email-editor-method-email'] = $form_data['notifications'][ $count ]['email-editor-method-email'];
-				}
-				if ( isset( $notification['email-editor-method-manual'] ) ) {
-					$notifications[ $count ]['email-editor-method-manual'] = $form_data['notifications'][ $count ]['email-editor-method-manual'];
-				}
-
-				$count++;
-			}
+			$template->notifications = $form_data['notifications'];
 		}
 
-		$form_model->set_var_in_array( 'name', 'formName', $submitted_data );
+		// Sanitize settings
+		$settings            = $form_data['settings'];
+		$settings['version'] = $version;
+		$template->settings  = $settings;
 
-		// Handle quiz questions
-		$form_model->notifications = $notifications;
-
-		$settings['formName'] = $title;
-
-		$settings['version']  = $version;
-		$form_model->settings = $settings;
-
-		// don't update leads post_status.
-		if ( 'leads' !== $form_model->status ) {
-			$form_model->status = $status;
+		$id = Forminator_Custom_Form_Admin::update( $id, $title, $status, $template );
+		if ( is_wp_error( $id ) ) {
+			wp_send_json_error( $id->get_error_message() );
+		} else {
+			wp_send_json_success( $id );
 		}
-
-		// Save data
-		$id = $form_model->save();
-
-		/**
-		 * Action called after form saved to database
-		 *
-		 * @since 1.11
-		 *
-		 * @param int    $id - form id
-		 * @param string $title - form title
-		 * @param string $status - form status
-		 * @param array  $fields - form fields
-		 * @param array  $settings - form settings
-		 *
-		 */
-		do_action( 'forminator_custom_form_action_' . $action, $id, $title, $status, $fields, $settings );
-
-		// add privacy settings to global option
-		$override_privacy = false;
-		if ( isset( $settings['enable-submissions-retention'] ) ) {
-			$override_privacy = filter_var( $settings['enable-submissions-retention'], FILTER_VALIDATE_BOOLEAN );
-		}
-		$retention_number = null;
-		$retention_unit   = null;
-		if ( $override_privacy ) {
-			$retention_number = 0;
-			$retention_unit   = 'days';
-			if ( isset( $settings['submissions-retention-number'] ) ) {
-				$retention_number = (int) $settings['submissions-retention-number'];
-			}
-			if ( isset( $settings['submissions-retention-unit'] ) ) {
-				$retention_unit = $settings['submissions-retention-unit'];
-			}
-		}
-
-		forminator_update_form_submissions_retention( $id, $retention_number, $retention_unit );
-
-		Forminator_Render_Form::regenerate_css_file( $id );
-
-		wp_send_json_success( $id );
-	}
-
-	/**
-	 * Prepare settings
-	 *
-	 * @param array $sent_data Sent settings.
-	 * @return array
-	 */
-	private static function validate_settings( $sent_data ) {
-		$settings = array();
-		if ( isset( $sent_data['settings'] ) ) {
-			// Sanitize settings.
-			$settings = forminator_sanitize_field( $sent_data['settings'] );
-
-			// Sanitize custom css.
-			if ( isset( $sent_data['settings']['custom_css'] ) ) {
-				$settings['custom_css'] = sanitize_textarea_field( $sent_data['settings']['custom_css'] );
-			}
-
-			// Sanitize admin email message.
-			if ( isset( $sent_data['settings']['admin-email-editor'] ) ) {
-				$settings['admin-email-editor'] = $sent_data['settings']['admin-email-editor'];
-			}
-
-			// Sanitize quiz description.
-			if ( isset( $sent_data['settings']['quiz_description'] ) ) {
-				$settings['quiz_description'] = $sent_data['settings']['quiz_description'];
-			}
-
-			if ( isset( $sent_data['settings']['social-share-message'] ) ) {
-				$settings['social-share-message'] = forminator_sanitize_textarea( $sent_data['settings']['social-share-message'] );
-			}
-
-			if ( isset( $sent_data['settings']['msg_count'] ) ) {
-				// Backup, we allow html here.
-				$settings['msg_count'] = $sent_data['settings']['msg_count'];
-			}
-		}
-
-		$settings = apply_filters( 'forminator_builder_data_settings_before_saving', $settings, $sent_data['settings'] );
-
-		return $settings;
 	}
 
 	/**
@@ -2259,5 +1984,33 @@ class Forminator_Admin_AJAX {
 		$dismissed_messages[ $slug ] = true;
 
 		update_user_meta( get_current_user_id(), 'frmt_dismissed_messages', $dismissed_messages );
+	}
+
+	/**
+	 * Module search for all types
+	 *
+	 * @since 1.14.12
+	 */
+	public function module_search() {
+		forminator_validate_ajax( 'forminator-nonce-search-module' );
+		$html 	 = '';
+		$modules = Forminator_Admin_Module_Edit_Page::get_searched_modules( filter_input( INPUT_POST, 'search_keyword', FILTER_SANITIZE_STRING ) );
+
+		ob_start();
+			Forminator_Admin_Module_Edit_Page::show_modules(
+				$modules,
+				filter_input( INPUT_POST, 'module_slug', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'preview_dialog', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'preview_title', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'export_dialog', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'post_type', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'soon', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'sql_month_start_date', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'wizard_page', FILTER_SANITIZE_STRING ),
+				filter_input( INPUT_POST, 'search_keyword', FILTER_SANITIZE_STRING )
+			);
+		$html = ob_get_clean();
+
+		wp_send_json_success( $html );
 	}
 }

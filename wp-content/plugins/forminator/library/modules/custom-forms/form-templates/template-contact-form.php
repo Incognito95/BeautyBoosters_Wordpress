@@ -19,9 +19,9 @@ class Forminator_Template_Contact_Form extends Forminator_Template {
 	public function defaults() {
 		return array(
 			'id'          => 'contact_form',
-			'name'        => __( 'Contact Form', 'forminator' ),
+			'name'        => __( 'Contact Us', 'forminator' ),
 			'description' => __( "A simple contact form for your users to contact you", 'forminator' ),
-			'icon'        => 'mail',
+			'icon'        => 'clipboard-notes',
 			'priortiy'    => 2,
 		);
 	}

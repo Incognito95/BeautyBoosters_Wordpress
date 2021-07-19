@@ -7,7 +7,8 @@
 }
 
 .forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-legend,
-.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-image {
+.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-image,
+.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-question--description {
 	margin: 0 0 <?php echo ($properties['quiz-custom-spacing'] / 2) ?>px;
 }
 
@@ -43,13 +44,9 @@
 	}
 
 	.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-legend,
-	.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-image {
+	.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-image,
+	.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-question--description {
 		padding: 0 <?php echo ($properties['quiz-custom-spacing'] / 4) ?>px;
-	}
-
-	.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-legend + .forminator-image,
-	.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-image + .forminator-image {
-		margin-top: <?php echo ($properties['quiz-custom-spacing'] / 2) ?>px;
 	}
 
 	.forminator-ui.forminator-quiz#forminator-module-<?php echo $properties['form_id'] ?>.forminator-quiz--grid[data-spacing=custom] .forminator-answer {

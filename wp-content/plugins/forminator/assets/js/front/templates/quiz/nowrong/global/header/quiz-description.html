@@ -5,16 +5,16 @@
 		<?php if ( forminator_array_value_exists( $properties, 'nowrong-description-color' ) ) { ?>
 			color: <?php echo $properties['nowrong-description-color'] ?>;
 		<?php } else { ?>
-			color: #000000;
+			color: #8C8C8C;
 		<?php } ?>
 	<?php } else { ?>
-		color: #000000;
+		color: #8C8C8C;
 	<?php } ?>
 	<?php if ( forminator_array_value_exists( $properties, 'nowrong-toggle-typography' ) ) { ?>
 		<?php if ( forminator_array_value_exists( $properties, 'nowrong-description-font-size' ) ) { ?>
 			font-size: <?php echo $properties['nowrong-description-font-size'] ?>px;
 		<?php } else { ?>
-			font-size: 16px;
+			font-size: 20px;
 		<?php } ?>
 		<?php if ( forminator_array_value_exists( $properties, 'nowrong-description-font-family' ) ) { ?>
 			<?php if ( $properties['nowrong-description-font-family'] != 'custom' ) { ?>
@@ -31,7 +31,7 @@
 			font-weight: 400;
 		<?php } ?>
 	<?php } else { ?>
-		font-size: 16px;
+		font-size: 20px;
 		font-weight: 400;
 	<?php } ?>
 }

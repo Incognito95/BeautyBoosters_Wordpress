@@ -214,12 +214,12 @@ class Forminator_Poll_Admin extends Forminator_Admin_Module {
 	 *
 	 * @return array[]
 	 */
-	public function get_default_settings( $name ) {
+	public static function get_default_settings( $name ) {
 		return array(
 			'answers'  => array(),
 			'settings' => array(
 				'formName'               => $name,
-				'version'              => FORMINATOR_VERSION,
+				'version'                => FORMINATOR_VERSION,
 				'admin-email-recipients' => array(
 					get_option( 'admin_email' ),
 				),
@@ -229,6 +229,9 @@ class Forminator_Poll_Admin extends Forminator_Admin_Module {
 					'forminator'
 				),
 			),
+			'akismet-protection' => true,
+			'formName' => $name,
+			'version'  => FORMINATOR_VERSION,
 		);
 	}
 
@@ -240,38 +243,158 @@ class Forminator_Poll_Admin extends Forminator_Admin_Module {
 	 * @return no return
 	 */
 	public function create_module() {
-		$model = null;
+		if ( ! $this->is_admin_wizard() || self::is_edit() ) {
+			return;
+		}
 
-		if ( $this->is_admin_wizard() ) {
-			if ( ! self::is_edit() ) {
-				$model = new Forminator_Poll_Model();
+		$name = '';
+		if ( isset( $_GET['name'] ) ) { // WPCS: CSRF ok.
+			$name = sanitize_text_field( $_GET['name'] );
+		}
 
-				$name = '';
-				if ( isset( $_GET['name'] ) ) { // WPCS: CSRF ok.
-					$name = sanitize_text_field( $_GET['name'] );
-				}
+		$status = Forminator_Poll_Model::STATUS_DRAFT;
 
-				$settings = $this->get_default_settings( $name );
+		$id = self::create( $name, $status );
 
-				$model->name = $name;
+		$wizard_url = admin_url( 'admin.php?page=forminator-poll-wizard&id=' . $id );
 
-				// form name & version
-				$settings['formName'] = $name;
-				$settings['version']  = FORMINATOR_VERSION;
+		wp_safe_redirect( $wizard_url );
+	}
 
-				// settings
-				$model->settings = $settings;
+	/**
+	 * Create poll
+	 *
+	 * @param string $name Name.
+	 * @param string $status Status.
+	 * @param object $template Template.
+	 * @return int post ID
+	 */
+	public static function create( $name, $status, $template = null ) {
+		// Set settings.
+		$custom_settings = $template && ! empty( $template->settings )
+				? $template->settings : array();
+		$settings        = self::get_default_settings( $name, $custom_settings );
 
-				// status
-				$model->status = Forminator_Poll_Model::STATUS_DRAFT;
+		$model = new Forminator_Poll_Model();
 
-				// Save data
-				$id = $model->save();
+		if ( $template && ! empty( $template->fields ) ) {
+			// Set fields.
+			foreach ( $template->fields as $field_data ) {
+				// Create new field model.
+				$field            = new Forminator_Form_Field_Model();
+				$field_data['id'] = $field_data['element_id'];
 
-				$wizard_url = admin_url( 'admin.php?page=forminator-poll-wizard&id=' . $id );
+				// Import field data to model.
+				$field->import( $field_data );
+				$field->slug = $field_data['element_id'];
 
-				wp_safe_redirect( $wizard_url );
+				// Add field to the form.
+				$model->add_field( $field );
 			}
 		}
+
+		$model->name     = $name;
+		$model->settings = self::validate_settings( $settings );
+		$model->status   = $status;
+
+		// Save data.
+		$id = $model->save();
+
+		return $id;
+	}
+
+	/**
+	 * Update poll
+	 *
+	 * @param string $id Module ID.
+	 * @param string $title Name.
+	 * @param string $status Status.
+	 * @param object $template Template.
+	 * @return int post ID
+	 */
+	public static function update( $id, $title, $status, $template ) {
+		if ( is_null( $id ) || $id <= 0 ) {
+			$form_model = new Forminator_Poll_Model();
+			$action     = 'create';
+
+			if ( empty( $status ) ) {
+				$status = Forminator_Poll_Model::STATUS_PUBLISH;
+			}
+		} else {
+			$form_model = Forminator_Poll_Model::model()->load( $id );
+			$action     = 'update';
+
+			if ( ! is_object( $form_model ) ) {
+				return new WP_Error( 'forminator_model_not_exist', __( "Poll model doesn't exist", 'forminator' ) );
+			}
+
+			if ( empty( $status ) ) {
+				$status = $form_model->status;
+			}
+
+			//we need to empty fields cause we will send new data
+			$form_model->clear_fields();
+		}
+
+		$form_model->name = sanitize_title( $title );
+
+		$answers = array();
+		// Check if answers exist
+		if ( isset( $template->answers ) ) {
+			$answers = forminator_sanitize_field( $template->answers );
+			$answers = wp_slash( $answers );
+		}
+
+		foreach ( $answers as $answer ) {
+			$field_model  = new Forminator_Form_Field_Model();
+			$answer['id'] = $answer['element_id'];
+			$field_model->import( $answer );
+			$field_model->slug = $answer['element_id'];
+			$form_model->add_field( $field_model );
+		}
+
+		$settings             = self::validate_settings( $template->settings );
+		$form_model->settings = $settings;
+		$form_model->status   = $status;
+
+		// Save data
+		$id = $form_model->save();
+
+		/**
+		* Action called after poll saved to database
+		*
+		* @since 1.11
+		*
+		* @param int    $id - poll id
+		* @param string $status - poll status
+		* @param array  $answers - poll answers
+		* @param array  $settings - poll settings
+		*
+		*/
+		do_action( 'forminator_poll_action_' . $action, $id, $status, $answers, $settings );
+
+		// add privacy settings to global option
+		$override_privacy = false;
+		if ( isset( $settings['enable-ip-address-retention'] ) ) {
+			$override_privacy = filter_var( $settings['enable-ip-address-retention'], FILTER_VALIDATE_BOOLEAN );
+		}
+		$retention_number = null;
+		$retention_unit   = null;
+		if ( $override_privacy ) {
+			$retention_number = 0;
+			$retention_unit   = 'days';
+			if ( isset( $settings['ip-address-retention-number'] ) ) {
+				$retention_number = (int) $settings['ip-address-retention-number'];
+			}
+			if ( isset( $settings['ip-address-retention-unit'] ) ) {
+				$retention_unit = $settings['ip-address-retention-unit'];
+			}
+		}
+
+		forminator_update_poll_submissions_retention( $id, $retention_number, $retention_unit );
+
+		Forminator_Render_Form::regenerate_css_file( $id );
+
+		return $id;
 	}
 }

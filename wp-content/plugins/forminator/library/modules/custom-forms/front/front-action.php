@@ -874,6 +874,7 @@ class Forminator_CForm_Front_Action extends Forminator_Front_Action {
 	 * @return array|bool
 	 */
 	public function handle_form( $form_id, $preview = false ) {
+		self::$module_id       = $form_id;
 		$submitted_data        = $this->_post_data;
 		$pseudo_submitted_data = array();
 
@@ -967,7 +968,12 @@ class Forminator_CForm_Front_Action extends Forminator_Front_Action {
 		 */
 		$is_spam = apply_filters( 'forminator_spam_protection', false, $field_data_array, $form_id, 'custom_form' );
 		if ( $is_spam ) {
-			return self::return_error( __( 'Something went wrong.', 'forminator' ) );
+			$fail_message = self::get_akismet_fail_message( $setting );
+			if ( false !== $fail_message ) {
+				return self::return_error( $fail_message );
+			} else {
+				$entry->is_spam = $is_spam;
+			}
 		}
 
 		if ( empty( $field_data_array ) ) {
@@ -1018,6 +1024,16 @@ class Forminator_CForm_Front_Action extends Forminator_Front_Action {
 			return self::return_error( $field_data_array->get_error_message() );
 		}
 
+		// If it's registration form.
+		$registration = self::maybe_registration( $setting, $custom_form, $submitted_data, $entry, $field_data_array, $pseudo_submitted_data );
+		if ( is_wp_error( $registration ) ) {
+			return self::return_error( $registration->get_error_message() );
+		} elseif ( $registration ) {
+			$field_data_array = self::remove_password( $field_data_array );
+			//Do not send emails later
+			$custom_form->notifications = array();
+		}
+
 		/**
 		 * Filter saved data before persisted into the database
 		 *
@@ -1063,16 +1079,6 @@ class Forminator_CForm_Front_Action extends Forminator_Front_Action {
 		$this->attach_addons_after_entry_saved( $form_id, $entry );
 
 		//After $entry->set_fields() to get all data for {all_fields}
-
-		// If it's registration form.
-		$registration = self::maybe_registration( $setting, $custom_form, $submitted_data, $entry, $field_data_array, $pseudo_submitted_data );
-		if ( is_wp_error( $registration ) ) {
-			return self::return_error( $registration->get_error_message() );
-		} elseif ( $registration ) {
-			$field_data_array = self::remove_password( $field_data_array );
-			//Do not send emails later
-			$custom_form->notifications = array();
-		}
 
 		// send email.
 		if ( 'leads' !== $form_type ) {
@@ -1523,7 +1529,7 @@ class Forminator_CForm_Front_Action extends Forminator_Front_Action {
 
 			// RECALCULATE, to retrieve error message if available
 			$formula           = $field_object->get_calculable_value( $submitted_data, $field );
-			$converted_formula = $field_object->get_converted_formula( $submitted_data, $field, $custom_form, self::$hidden_fields );
+			$converted_formula = $field_object->get_converted_formula( $submitted_data, $pseudo_submitted_data, $field, $custom_form, self::$hidden_fields );
 			$calculation_error = '';
 			$result            = 0.0;
 
@@ -1781,7 +1787,7 @@ class Forminator_CForm_Front_Action extends Forminator_Front_Action {
 					$forminator_calculation_field = isset( $field_classes[ $field_type ] ) ? $field_classes[ $field_type ] : null;
 					if ( $forminator_calculation_field instanceof Forminator_Calculation ) {
 						try {
-							$converted_formula = $forminator_calculation_field->get_converted_formula( $submitted_data, $field_array, $custom_form, self::$hidden_fields );
+							$converted_formula = $forminator_calculation_field->get_converted_formula( $submitted_data, $pseudo_submitted_data, $field_array, $custom_form, self::$hidden_fields );
 							$result            = $forminator_calculation_field->get_calculated_value( $converted_formula, $submitted_data, $field_array );
 						} catch ( Forminator_Calculator_Exception $e ) {
 							$result = 0.0;

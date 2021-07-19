@@ -342,10 +342,13 @@ class Forminator_PayPal_Express extends Forminator_Payment_Gateway {
 		$query_args = array(
 			'method'    => $method,
 			'headers'   => $headers,
-			'body'		=> $body,
 			'sslverify' => apply_filters( 'forminator_paypal_request_sslverify', false ),
 			'timeout'   => apply_filters( 'forminator_paypal_request_timeout', 30 ),
 		);
+
+		if ( ! empty( $body ) ) {
+			$query_args['body'] = $body;
+		}
 
 		$query_result = wp_remote_request( $url, $query_args );
 

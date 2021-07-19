@@ -1,13 +1,13 @@
 === Forminator - Contact Form, Payment Form & Custom Form Builder ===
 Plugin Name: Forminator - Contact Form, Payment Form & Custom Form Builder
-Version: 1.14.11
+Version: 1.14.12
 Author: WPMU DEV
 Author URI: https://wpmudev.com/
 Contributors: WPMUDEV
 Tags: forms, contact form, wordpress form plugin, payment form, custom form, form builder, paypal form wordpress, form maker, quiz, quiz builder, order form, stripe payments, paypal payments, stripe form, paypal form
 Requires at least: 5.2
 Tested up to: 5.7
-Stable tag: 1.14.11
+Stable tag: 1.14.12
 Requires PHP: 5.2.4
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -211,7 +211,46 @@ Find out all you need to know by checking out our API documentation [here](https
 
 == Changelog ==
 
-- 1.14.11 =
+= 1.14.12 =
+
+- Add: Ability to add images for Radio and Checkbox options.
+- Add: Pagination support for quizzes.
+- Add: Bulk import options for Radio, Checkbox and Select fields.
+- Improvement: Conditionally assign roles during registration.
+- Improvement: Added Question Description HTML field for each Quiz question.
+- Improvement: Multiple knowledge quiz answers allowed when ‘On Submission’ display option is selected.
+- Improvement: Update reCatpcha v3 styles and position.
+- Improvement: Search option on listings pages.
+- Improvement: Added Akismet options under Behaviour > Security tab.
+- Improvement: Added option to use value or label for Select/Radio/Checkbox fields.
+- Improvement: User registration form storing plain user password in meta table.
+- Fix: PayPal submission button can be bypassed.
+- Fix: Stripe Email Receipt is not being submitted.
+- Fix: Checkbox field option selection on front-end causes page to scroll to top.
+- Fix: Wrong calculation value when visibility with type “Show” is used.
+- Fix: Fields with visibility conditions Day and Month breaks if the site language is different than English.
+- Fix: Poll results are squashed when there are many answers.
+- Fix: Date picker field “Today” option should use WordPress settings time instead of UTC.
+- Fix: Select Drop downs not working on Hustle PopUp.
+- Fix: Radio field front-end styling issues on “Twenty Twenty” theme.
+- Fix: Some custom css selectors are not working on Quiz with leads.
+- Fix: Conditional visibility issues with Submit button.
+- Fix: Wrong calculation of conditionally hidden fields.
+- Fix: Signature image is not getting through all integrations.
+- Fix: More than 1 submissions export is sent for a form with scheduled exports.
+- Fix: Recaptcha v3 badge is behind the sidebar widgets on Astra Theme.
+- Fix: Optimised database query on Registration template.
+- Fix: Quiz with Leads form, “Start quiz button” text can not be updated.
+- Fix: Form title empty space are converted to dash(-).
+- Fix: Mailchimp integration does not work with Registration form.
+- Fix: Date format on Date picker field is not functional.
+- Fix: Discard changes (CANCEL) button doesn’t work properly for Radio/Checkbox/Select fields.
+- Fix: JavaScript console errors when adding new fields in wizard.
+- Fix: Submitting form and “logging in” in meantime throws JS error and submission is invalid.
+- Fix: Security vulnerabilities
+- Other minor enhancements/fixes
+
+= 1.14.11 =
 
 - Improvement: Front-end code refactoring and optimisation
 - Improvement: Remove the inline CSS Forminator adds on the page source

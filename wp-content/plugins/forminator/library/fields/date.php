@@ -233,7 +233,7 @@ class Forminator_Date extends Forminator_Field {
 					$start_offset_value    = self::get_property( 'start-offset-value', $field, '0' );
 					$start_offset_duration = self::get_property( 'start-offset-duration', $field, 'days' );
 					if ( 'today' === $start_date_type ) {
-						$start_date = date_i18n( 'Y-m-d', strtotime( $start_offset_operator . $start_offset_value . ' ' . $start_offset_duration ) );
+						$start_date = date_i18n( 'Y-m-d', strtotime( $start_offset_operator . $start_offset_value . ' ' . $start_offset_duration, current_time( 'U' ) ) );
 					} else {
 						$start_date_field = $start_date_type;
 						$start_offset     = $start_offset_operator . '_' . $start_offset_value . '_' . $start_offset_duration;
@@ -248,7 +248,7 @@ class Forminator_Date extends Forminator_Field {
 					$end_offset_value    = self::get_property( 'end-offset-value', $field, '0' );
 					$end_offset_duration = self::get_property( 'end-offset-duration', $field, 'days' );
 					if ( 'today' === $end_date_type ) {
-						$end_date = date_i18n( 'Y-m-d', strtotime( $end_offset_operator . $end_offset_value . ' ' . $end_offset_duration ) );
+						$end_date = date_i18n( 'Y-m-d', strtotime( $end_offset_operator . $end_offset_value . ' ' . $end_offset_duration, current_time( 'U' ) ) );
 					} else {
 						$end_date_field = $end_date_type;
 						$end_offset     = $end_offset_operator . '_' . $end_offset_value . '_' . $end_offset_duration;
@@ -1195,7 +1195,7 @@ class Forminator_Date extends Forminator_Field {
 						$start_offset_value    = self::get_property( 'start-offset-value', $field, '0' );
 						$start_offset_duration = self::get_property( 'start-offset-duration', $field, 'days' );
 						if ( 'today' === $start_date_type ) {
-							$start_date = date_i18n( 'm/d/Y', strtotime( $start_offset_operator . $start_offset_value . ' ' . $start_offset_duration ) );
+							$start_date = date_i18n( 'm/d/Y', strtotime( $start_offset_operator . $start_offset_value . ' ' . $start_offset_duration, current_time( 'U' ) ) );
 						} else {
 							$start_date_field = isset( $post_data[ $start_date_type ] ) ? $post_data[ $start_date_type ] : '';
 							$start_date       = ! empty( $start_date_field ) ? date_i18n( 'm/d/Y', strtotime( $start_date_field . ' ' . $start_offset_operator . $start_offset_value . ' ' . $start_offset_duration ) ) : '';
@@ -1216,7 +1216,7 @@ class Forminator_Date extends Forminator_Field {
 						$end_offset_value    = self::get_property( 'end-offset-value', $field, '0' );
 						$end_offset_duration = self::get_property( 'end-offset-duration', $field, 'days' );
 						if ( 'today' === $end_date_type ) {
-							$end_date = date_i18n( 'm/d/Y', strtotime( $end_offset_operator . $end_offset_value . ' ' . $end_offset_duration ) );
+							$end_date = date_i18n( 'm/d/Y', strtotime( $end_offset_operator . $end_offset_value . ' ' . $end_offset_duration, current_time( 'U' ) ) );
 						} else {
 							$end_date_field = isset( $post_data[ $end_date_type ] ) ? $post_data[ $end_date_type ] : '';
 							$end_date       = date_i18n( 'm/d/Y', strtotime( $end_date_field . ' ' . $end_offset_operator . $end_offset_value . ' ' . $end_offset_duration ) );

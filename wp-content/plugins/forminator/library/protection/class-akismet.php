@@ -67,6 +67,10 @@ class Forminator_Akismet extends Forminator_Spam_Protection {
 	 * @return bool $is_spam
 	 */
 	protected function handle_spam_protection( $is_spam, $posted_params, $form_id, $form_type ) {
+		// Check Akismet integration
+		if ( ! self::is_protection_enabled( $form_id ) ) {
+			return $is_spam;
+		}
 
 		$post_data = array(
 			'blog' 			=> get_option( 'home' ),
@@ -125,6 +129,20 @@ class Forminator_Akismet extends Forminator_Spam_Protection {
 		}
 
 		return $is_spam;
+	}
+
+	/**
+	 * Check if Akismet protection is enabled
+	 *
+	 * @param int $id Module ID.
+	 * @return bool
+	 */
+	private static function is_protection_enabled( $id ) {
+		$model    = Forminator_Base_Form_Model::get_model( $id );
+		$settings = ! empty( $model->settings ) ? $model->settings : array();
+		$enabled  = ! isset( $settings['akismet-protection'] ) || $settings['akismet-protection'];
+
+		return $enabled;
 	}
 
 	/**

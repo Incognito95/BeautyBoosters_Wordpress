@@ -75,7 +75,7 @@
 
 			<h3 class="sui-box-title" id="dialogTitle">{{ Forminator.l10n.popup.enter_name }}</h3>
 
-			<button class="sui-dialog-close forminator-cancel-create-form" data-a11y-dialog-hide aria-label="Close this dialog window"></button>
+			<button class="sui-dialog-close forminator-cancel-create-form" data-a11y-dialog-hide aria-label="{{ Forminator.l10n.popup.close_label }}"></button>
 
 		</div>
 
@@ -108,7 +108,8 @@
 
 			<h3 class="sui-box-title" id="dialogTitle">{{ Forminator.l10n.quiz.collect_leads }}</h3>
 
-			<button class="sui-dialog-close forminator-cancel-create-form" data-a11y-dialog-hide aria-label="Close this dialog window"></button>
+			<button class="sui-dialog-back" aria-label="{{ Forminator.l10n.popup.go_back }}"></button>
+			<button class="sui-dialog-close forminator-cancel-create-form" data-a11y-dialog-hide aria-label="{{ Forminator.l10n.popup.close_label }}"></button>
 
 		</div>
 
@@ -122,6 +123,82 @@
 				<span class="sui-loading-text"><i class="sui-icon-plus" aria-hidden="true"></i> {{ Forminator.l10n.quiz.create_quiz }}</span>
 				<i class="sui-icon-loader sui-loading" aria-hidden="true"></i>
 			</button>
+
+		</div>
+
+		{[ if( Forminator.Data.showBranding ) { ]}
+		<img src="{{ Forminator.Data.imagesUrl }}/forminator-create-modal.png"
+		     srcset="{{ Forminator.Data.imagesUrl }}/forminator-create-modal.png 1x, {{ Forminator.Data.imagesUrl }}/forminator-create-modal@2x.png 2x"
+		     class="sui-image sui-image-center"
+		     aria-hidden="true"
+		     alt="Forminator">
+		{[ } ]}
+
+	</script>
+
+	<script type="text/template" id="forminator-new-quiz-pagination-tpl">
+
+		<div class="sui-box-header sui-block-content-center">
+
+			<h3 class="sui-box-title" id="dialogTitle">{{ Forminator.l10n.quiz.quiz_pagination }}</h3>
+
+			<button class="sui-dialog-back" aria-label="{{ Forminator.l10n.popup.go_back }}"></button>
+			<button class="sui-dialog-close forminator-cancel-create-form" data-a11y-dialog-hide aria-label="{{ Forminator.l10n.popup.close_label }}"></button>
+
+		</div>
+
+		<div class="sui-box-body sui-box-body-slim sui-block-content-center" style="padding-bottom: 5px;">
+
+			<p class="sui-description sui-block-content-center">
+				{{ Forminator.l10n.quiz.quiz_pagination_descr }}<br>
+				{{ Forminator.l10n.quiz.quiz_pagination_descr2 }}
+			</p>
+
+			<label class="sui-label">{{ Forminator.l10n.quiz.presentation }}</label>
+
+		</div>
+
+		<div class="sui-box-selectors">
+
+			<ul>
+
+				<li><label class="sui-box-selector">
+					<input
+						type="radio"
+						name="forminator-quiz-pagination"
+						value=""
+						checked="checked"
+					/>
+					<span>
+						{{ Forminator.l10n.quiz.no_pagination }}
+					</span>
+				</label></li>
+
+				<li><label class="sui-box-selector">
+					<input
+						type="radio"
+						name="forminator-quiz-pagination"
+						value="1"
+					/>
+					<span>
+						{{ Forminator.l10n.quiz.paginate_quiz }}
+					</span>
+				</label></li>
+
+			</ul>
+
+		</div>
+
+		<div class="sui-box-footer">
+
+			<div class="sui-actions-right">
+
+				<button class="sui-button select-quiz-pagination">
+					<span class="sui-loading-text">{{ Forminator.l10n.quiz.continue_button }}</span>
+					<i class="sui-icon-load sui-loading" aria-hidden="true"></i>
+				</button>
+
+			</div>
 
 		</div>
 
@@ -690,6 +767,7 @@
 
 	    <div class="sui-box-footer">
 		    <button type="button" class="sui-button sui-button-ghost forminator-popup-cancel" data-a11y-dialog-hide>{{ Forminator.l10n.popup.cancel }}</button>
+			<div class="sui-actions-right">
 		    <form method="post" class="delete-action">
 			    <input type="hidden" name="forminator_action" value="{{ action }}">
 			    <input type="hidden" name="id" value="{{ id }}">
@@ -698,9 +776,10 @@
 			    <input type="hidden" name="_wp_http_referer" value="{{ referrer }}">
 			    <button type="submit" class="sui-button sui-button-ghost sui-button-red popup-confirmation-confirm">
 				    <i class="sui-icon-trash" aria-hidden="true"></i>
-				    {{ Forminator.l10n.popup.delete }}
+				    {{ button }}
 			    </button>
 		    </form>
+			</div>
 	    </div>
 
 	</script>

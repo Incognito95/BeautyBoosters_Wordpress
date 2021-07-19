@@ -65,9 +65,9 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 			$settings = apply_filters( 'forminator_form_settings', $this->get_form_settings( $model ), $model, $data, $this );
 
 			if ( isset( $model->settings['form-type'] ) && 'registration' === $model->settings['form-type'] ) {
-				$notifications = $this->get_registration_form_notifications( $model );
+				$notifications = self::get_registration_form_notifications( $model );
 			} else {
-				$notifications = $this->get_form_notifications( $model );
+				$notifications = self::get_form_notifications( $model );
 			}
 
 			$form_id     = isset( $model->id ) ? $model->id : 0;
@@ -229,7 +229,7 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 	 *
 	 * @return mixed
 	 */
-	public function get_form_notifications( $form ) {
+	public static function get_form_notifications( $form ) {
 		if ( ! isset( $form ) || ! isset( $form->notifications ) ) {
 			return array(
 				array(
@@ -257,7 +257,7 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 	 *
 	 * @return mixed
 	 */
-	public function get_registration_form_notifications( $form, $template = null ) {
+	public static function get_registration_form_notifications( $form, $template = null ) {
 		if ( ! isset( $form ) || ! isset( $form->notifications ) ) {
 			$msg_footer = __( 'This message was sent from {site_url}', 'forminator' );
 			//For admin
@@ -286,9 +286,9 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 				'email-editor-method-manual'  => $message_method_manual,
 			);
 			if ( ! is_null( $template )) {
-				$email = $this->get_registration_form_customer_email_slug( $template );
+				$email = self::get_registration_form_customer_email_slug( $template );
 			} else {
-				$email = $this->get_registration_form_customer_email_slug( $form );
+				$email = self::get_registration_form_customer_email_slug( $form );
 			}
 			//For customer
 			$message  = __( "Your new account on our site {site_title} is ready to go. Here's your details: <br/><br/> {all_fields} <br/><br/>", 'forminator' );
@@ -336,7 +336,7 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 	 *
 	 * @return string
 	 */
-	public function get_registration_form_customer_email_slug( $form, $default = '{email-1}' ) {
+	public static function get_registration_form_customer_email_slug( $form, $default = '{email-1}' ) {
 		if ( isset( $form->settings['registration-email-field'] ) && ! empty( $form->settings['registration-email-field'] ) ) {
 			$email = $form->settings['registration-email-field'];
 			if ( false === strpos( $email, '{' ) ) {
@@ -350,25 +350,6 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 	}
 
 	/**
-	 * Check if Custom form has stripe field
-	 *
-	 * @since 1.7
-	 * @return bool
-	 */
-	public function has_stripe_field( $form ) {
-		$fields = isset( $form->fields ) ? $form->fields : array();
-
-		foreach ( $fields as $field ) {
-			$field = $field->to_formatted_array();
-			if ( isset( $field['type'] ) && 'stripe' === $field['type'] ) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Check if submit is handled with AJAX
 	 *
 	 * @since 1.9.3
@@ -379,7 +360,7 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 		$form_settings  = $form->settings;
 
 		// Force AJAX submit if form contains Stripe payment field
-		if ( $this->has_stripe_field( $form ) ) {
+		if ( $form->has_stripe_field() ) {
 			return true;
 		}
 
@@ -398,7 +379,7 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 	 *
 	 * @return array
 	 */
-	public function get_default_settings( $name, $settings = array() ) {
+	public static function get_default_settings( $name, $settings = array() ) {
 		return array_merge(
 			array(
 				'formName'             => $name,
@@ -409,6 +390,7 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 				'form-border'          => '',
 				'fields-style'         => 'open',
 				'validation'           => 'on_submit',
+				'akismet-protection'   => true,
 				'form-style'           => 'default',
 				'enable-ajax'          => 'true',
 				'autoclose'            => 'true',
@@ -431,83 +413,206 @@ class Forminator_Custom_Form_Admin extends Forminator_Admin_Module {
 	 * @return no return
 	 */
 	public function create_module() {
-		$model = null;
+		if ( ! $this->is_admin_wizard() || self::is_edit() ) {
+			return;
+		}
 
-		if ( $this->is_admin_wizard() ) {
-			$data['application'] = 'builder';
+		// Load settings from template
+		$template = $this->get_template();
 
-			if ( ! self::is_edit() ) {
-				$settings      = array();
+		$name = '';
+		if ( isset( $_GET['name'] ) ) { // WPCS: CSRF ok.
+			$name = sanitize_text_field( $_GET['name'] );
+		}
 
-				// Create new model
-				$model = new Forminator_Form_Model();
+		$status = Forminator_Form_Model::STATUS_DRAFT;
+		$id     = self::create( $name, $status, $template );
 
-				// Save nonce
-				$data['formNonce'] = wp_create_nonce( 'forminator_save_builder_fields' );
+		$wizard_url = admin_url( 'admin.php?page=forminator-cform-wizard&id=' . $id );
 
-				// Load settings from template
-				$template = $this->get_template();
+		wp_safe_redirect( $wizard_url );
+	}
 
-				$name = '';
-				if ( isset( $_GET['name'] ) ) { // WPCS: CSRF ok.
-					$name = sanitize_text_field( $_GET['name'] );
+	/**
+	 * Create form
+	 *
+	 * @param string $name Name.
+	 * @param string $status Status.
+	 * @param object $template Template.
+	 * @return int post ID
+	 */
+	public static function create( $name, $status, $template = null ) {
+		// Create new form model.
+		$model = new Forminator_Form_Model();
+
+		if ( isset( $model->notifications ) ) {
+			unset( $model->notifications );
+		}
+
+		// Setup notifications.
+		if ( $template && isset( $template->settings['form-type'] )
+				&& in_array( $template->settings['form-type'], array( 'registration', 'login' ), true ) ) {
+			$notifications = 'registration' === $template->settings['form-type']
+				? self::get_registration_form_notifications( $model, $template )
+				: array();
+		} else {
+			$notifications = self::get_form_notifications( $model );
+		}
+
+		// If template, load from file.
+		if ( $template ) {
+			$settings = self::get_default_settings( $name, $template->settings );
+
+			// Setup template fields.
+			foreach ( $template->fields as $row ) {
+				foreach ( $row['fields'] as $f ) {
+					$field          = new Forminator_Form_Field_Model();
+					$field->form_id = $row['wrapper_id'];
+					$field->slug    = $f['element_id'];
+					unset( $f['element_id'] );
+					$field->import( $f );
+					$model->add_field( $field );
 				}
+			}
+		} else {
+			$settings = self::get_default_settings( $name, array() );
+		}
 
-				if ( isset( $model->notifications ) ) {
-					unset( $model->notifications );
-				}
+		$model->name          = $name;
+		$model->notifications = $notifications;
 
-				// Setup notifications
-				if ( isset( $template->settings['form-type'] ) && in_array( $template->settings['form-type'], array(
-						'registration',
-						'login'
-					) ) ) {
-					$notifications = 'registration' === $template->settings['form-type']
-						? $this->get_registration_form_notifications( $model, $template )
-						: array();
-				} else {
-					$notifications = $this->get_form_notifications( $model );
-				}
+		$model->settings = self::validate_settings( $settings );
+		$model->status   = $status;
 
-				// If template, load from file
-				if ( $template ) {
-					$settings = $this->get_default_settings( $name, $template->settings );
+		// Save data.
+		$id = $model->save();
 
-					// Setup template fields
-					foreach ( $template->fields as $row ) {
-						foreach ( $row['fields'] as $f ) {
-							$field          = new Forminator_Form_Field_Model();
-							$field->form_id = $row['wrapper_id'];
-							$field->slug    = $f['element_id'];
-							unset( $f['element_id'] );
-							$field->import( $f );
-							$model->add_field( $field );
-						}
-					}
-				} else {
-					$settings = $this->get_default_settings( $name, array() );
-				}
+		return $id;
+	}
 
-				$model->name          = $name;
-				$model->notifications = $notifications;
+	/**
+	 * Update form
+	 *
+	 * @param string $id Module ID.
+	 * @param string $title Name.
+	 * @param string $status Status.
+	 * @param object $template Template.
+	 * @return int post ID
+	 */
+	public static function update( $id, $title, $status, $template ) {
+		if ( is_null( $id ) || $id <= 0 ) {
+			$form_model = new Forminator_Form_Model();
+			$action     = 'create';
 
-				// form name & version
-				$settings['formName'] = $name;
-				$settings['version']  = FORMINATOR_VERSION;
+			if ( empty( $status ) ) {
+				$status = Forminator_Form_Model::STATUS_PUBLISH;
+			}
+		} else {
+			$form_model = Forminator_Form_Model::model()->load( $id );
+			$action     = 'update';
 
-				// settings
-				$model->settings = $settings;
+			if ( ! is_object( $form_model ) ) {
+				return new WP_Error( 'forminator_model_not_exist', __( "Form model doesn't exist", 'forminator' ) );
+			}
 
-				// status
-				$model->status = Forminator_Form_Model::STATUS_DRAFT;
+			if ( empty( $status ) ) {
+				$status = $form_model->status;
+			}
 
-				// Save data
-				$id = $model->save();
+			//we need to empty fields cause we will send new data
+			$form_model->clear_fields();
+		}
 
-				$wizard_url = admin_url( 'admin.php?page=forminator-cform-wizard&id=' . $id );
-
-				wp_safe_redirect( $wizard_url );
+		$fields = isset( $template->fields ) ? $template->fields : array();
+		foreach ( $fields as $row ) {
+			foreach ( $row['fields'] as $f ) {
+				$field          = new Forminator_Form_Field_Model();
+				$field->form_id = $row['wrapper_id'];
+				$field->slug    = $f['element_id'];
+				unset( $f['element_id'] );
+				$field->import( $f );
+				$form_model->add_field( $field );
 			}
 		}
+
+		$settings = self::validate_settings( $template->settings );
+
+		$notifications = array();
+		if ( isset( $template->notifications ) ) {
+			$notifications = forminator_sanitize_field( $template->notifications );
+
+			$count = 0;
+			foreach( $notifications as $notification ) {
+				if ( isset( $notification['email-editor'] ) ) {
+					$notifications[ $count ]['email-editor'] = $template->notifications[ $count ]['email-editor'];
+				}
+				if ( isset( $notification['email-editor-method-email'] ) ) {
+					$notifications[ $count ]['email-editor-method-email'] = $template->notifications[ $count ]['email-editor-method-email'];
+				}
+				if ( isset( $notification['email-editor-method-manual'] ) ) {
+					$notifications[ $count ]['email-editor-method-manual'] = $template->notifications[ $count ]['email-editor-method-manual'];
+				}
+
+				$count++;
+			}
+		}
+
+		// Handle quiz questions
+		$form_model->notifications = $notifications;
+
+		$form_model->name     = sanitize_title( $title );
+		$settings['formName'] = sanitize_text_field( $title );
+
+		$form_model->settings = $settings;
+
+		// don't update leads post_status.
+		if ( 'leads' !== $form_model->status ) {
+			$form_model->status = $status;
+		}
+
+		// Save data
+		$id = $form_model->save();
+
+		/**
+		 * Action called after form saved to database
+		 *
+		 * @since 1.11
+		 *
+		 * @param int    $id - form id
+		 * @param string $title - form title
+		 * @param string $status - form status
+		 * @param array  $fields - form fields
+		 * @param array  $settings - form settings
+		 *
+		 */
+		do_action( 'forminator_custom_form_action_' . $action, $id, $title, $status, $fields, $settings );
+
+		// add privacy settings to global option
+		$override_privacy = false;
+		if ( isset( $settings['enable-submissions-retention'] ) ) {
+			$override_privacy = filter_var( $settings['enable-submissions-retention'], FILTER_VALIDATE_BOOLEAN );
+		}
+		$retention_number = null;
+		$retention_unit   = null;
+		if ( $override_privacy ) {
+			$retention_number = 0;
+			$retention_unit   = 'days';
+			if ( isset( $settings['submissions-retention-number'] ) ) {
+				$retention_number = (int) $settings['submissions-retention-number'];
+			}
+			if ( isset( $settings['submissions-retention-unit'] ) ) {
+				$retention_unit = $settings['submissions-retention-unit'];
+			}
+		}
+
+		forminator_update_form_submissions_retention( $id, $retention_number, $retention_unit );
+
+		Forminator_Render_Form::regenerate_css_file( $id );
+		// Purge count forms cache
+		wp_cache_delete( 'forminator_form_total_entries', 'forminator_form_total_entries' );
+		wp_cache_delete( 'forminator_form_total_entries_publish', 'forminator_form_total_entries_publish' );
+		wp_cache_delete( 'forminator_form_total_entries_draft', 'forminator_form_total_entries_draft' );
+
+		return $id;
 	}
 }

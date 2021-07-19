@@ -739,7 +739,7 @@ class Forminator_CForm_View_Page extends Forminator_Admin_View_Page {
 	 *
 	 * @return mixed
 	 */
-	private static function format_addon_additional_items( $addon_additional_items, $meta_data = array() ) {
+	protected static function format_addon_additional_items( $addon_additional_items, $meta_data = array() ) {
 		//to `name` and `value` basis
 		$formatted_additional_items = array();
 		if ( ! is_array( $addon_additional_items ) ) {

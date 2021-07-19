@@ -226,19 +226,19 @@
 								if (!$captcha_field.hasClass("error")) {
 									$captcha_field.addClass("error");
 								}
-									
+
 								$target_message.html('<label class="forminator-label--error"><span>' + window.ForminatorFront.cform.captcha_error + '</span></label>');
-								
+
 								if ( ! self.settings.inline_validation ) {
 									self.focus_to_element($target_message);
 								} else {
-									
+
 									if ( ! $captcha_parent.hasClass( 'forminator-has_error' ) && $captcha_field.data( 'size' ) !== 'invisible' ) {
 										$captcha_parent.addClass( 'forminator-has_error' )
 											.append( '<span class="forminator-error-message" aria-hidden="true">' + window.ForminatorFront.cform.captcha_error + '</span>' );
 										self.focus_to_element( $captcha_parent );
 									}
-									
+
 								}
 
 								return false;
@@ -290,10 +290,10 @@
 								$this.trigger('before:forminator:form:submit', formData);
 							},
 							success: function( data ) {
-								if( ! data && 'undefined' !== typeof data ) {
+								if( ( ! data && 'undefined' !== typeof data ) || 'object' !== typeof data.data ) {
 									$this.find( 'button' ).removeAttr( 'disabled' );
 									$target_message.addClass('forminator-error')
-										.html( '<p>' + window.ForminatorFront.cform.error + '</p>');
+										.html( '<p>' + window.ForminatorFront.cform.error + '<br>(' + data.data + ')</p>');
 									self.focus_to_element($target_message, 'forminator-error');
 
 									return false;
@@ -306,29 +306,7 @@
 								$this.find( 'button' ).removeAttr( 'disabled' );
 								$target_message.html( '' ).removeClass( 'forminator-accessible forminator-error forminator-success' );
 								if( self.settings.hasLeads && 'undefined' !== typeof data.data.entry_id ) {
-									form.css({
-										'height': 0,
-										'opacity': 0,
-										'overflow': 'hidden',
-										'visibility': 'hidden',
-										'pointer-events': 'none',
-										'margin': 0,
-										'padding': 0,
-										'border': 0
-									});
-									$( '#forminator-quiz-leads-' + self.settings.quiz_id + ' .forminator-lead-form-skip' ).hide();
-									if( 'beginning' === self.settings.form_placement ) {
-										$('#forminator-module-' + self.settings.quiz_id ).css({
-											'height': '',
-											'opacity': '',
-											'overflow': '',
-											'visibility': '',
-											'pointer-events': '',
-											'margin': '',
-											'padding': '',
-											'border': ''
-										});
-									}
+									self.showQuiz( form );
 									$('#forminator-module-' + self.settings.quiz_id + ' input[name=entry_id]' ).val( data.data.entry_id );
 									if( 'end' === self.settings.form_placement ) {
 										$('#forminator-module-' + self.settings.quiz_id).submit();
@@ -336,7 +314,9 @@
 
                                     return false;
                                 }
-								if ( typeof data.data.authentication !== 'undefined' &&
+								if ( typeof data !== 'undefined' &&
+									 typeof data.data !== 'undefined' &&
+									 typeof data.data.authentication !== 'undefined' &&
 									( 'show' === data.data.authentication || 'invalid' === data.data.authentication ) ) {
 									var moduleId  = self.$el.attr( 'id' ),
 										authId    = moduleId + '-authentication',
@@ -570,6 +550,48 @@
 
 		},
 
+		hideForm: function( form ) {
+			form.css({
+				'height': 0,
+				'opacity': 0,
+				'overflow': 'hidden',
+				'visibility': 'hidden',
+				'pointer-events': 'none',
+				'margin': 0,
+				'padding': 0,
+				'border': 0
+			});
+		},
+
+		showForm: function( form ) {
+			form.css({
+				'height': '',
+				'opacity': '',
+				'overflow': '',
+				'visibility': '',
+				'pointer-events': '',
+				'margin': '',
+				'padding': '',
+				'border': ''
+			});
+		},
+
+		showQuiz: function( form ) {
+			var quizForm = $('#forminator-module-' + this.settings.quiz_id ),
+				parent = $( '#forminator-quiz-leads-' + this.settings.quiz_id );
+
+			this.hideForm( form );
+			parent.find( '.forminator-lead-form-skip' ).hide();
+			if( 'undefined' !== typeof this.settings.form_placement && 'beginning' === this.settings.form_placement ) {
+				this.showForm( quizForm );
+				if ( quizForm.find('.forminator-pagination').length ) {
+					parent.find( '.forminator-quiz-intro').hide();
+					quizForm.prepend('<button class="forminator-button forminator-quiz-start forminator-hidden"></button>')
+							.find('.forminator-quiz-start').trigger('click').remove();
+				}
+			}
+		},
+
 		handle_submit_quiz: function( data ) {
 
 			var self = this,
@@ -583,7 +605,7 @@
 					ajaxData  = [],
 					formData  = new FormData( this ),
 					answer    = form.find( '.forminator-answer' ),
-					button    = self.$el.find('.forminator-button'),
+					button    = self.$el.find('.forminator-button').last(),
 					loadLabel = button.data( 'loading' ),
 					placement = 'undefined' !== typeof self.settings.form_placement ? self.settings.form_placement : '',
 					skip_form = 'undefined' !== typeof self.settings.skip_form ? self.settings.skip_form : ''
@@ -607,16 +629,7 @@
 						entry_id = self.$el.find('input[name=entry_id]').val();
 					}
 					if( 'end' === placement && entry_id === '' ) {
-						$('#forminator-module-' + leads_id ).css({
-							'height': '',
-							'opacity': '',
-							'overflow': '',
-							'visibility': '',
-							'pointer-events': '',
-							'margin': '',
-							'padding': '',
-							'border': ''
-						});
+						self.showForm( $('#forminator-module-' + leads_id ) );
 						self.$el.find( '.forminator-quiz--result' ).addClass( 'forminator-hidden' );
 						$('#forminator-quiz-leads-' + quiz_id + ' .forminator-lead-form-skip' ).show();
 
@@ -649,32 +662,39 @@
 					});
 				}
 
+				var pagination = !! self.$el.find('.forminator-pagination');
+
 				$.ajax({
 					type: 'POST',
 					url: window.ForminatorFront.ajaxUrl,
 					data: ajaxData,
 					beforeSend: function() {
-						self.$el.find( 'button' ).attr( 'disabled', 'disabled' );
+						if ( ! pagination ) {
+							self.$el.find( 'button' ).attr( 'disabled', 'disabled' );
+						}
 						form.trigger( 'before:forminator:quiz:submit', [ ajaxData, formData ] );
 					},
 					success: function( data ) {
 
 						if ( data.success ) {
+							var resultText = '';
 
                             self.$el.find( '.forminator-quiz--result' ).removeClass( 'forminator-hidden' );
+							window.history.pushState( 'forminator', 'Forminator', data.data.result_url );
 
 							if ( data.data.type === 'nowrong' ) {
+								resultText = data.data.result;
 
-								window.history.pushState( 'forminator', 'Forminator', data.data.result_url );
-								self.$el.find( '.forminator-quiz--result' ).html( data.data.result );
-								self.$el.find( '.forminator-answer input' ).attr( 'disabled', 'disabled' );
+								self.$el.find( '.forminator-quiz--result' ).html( resultText );
+								if ( ! pagination ) {
+									self.$el.find( '.forminator-answer input' ).attr( 'disabled', 'disabled' );
+								}
 
 							} else if ( data.data.type === 'knowledge' ) {
-
-								window.history.pushState( 'forminator', 'Forminator', data.data.result_url );
+								resultText = data.data.finalText;
 
 								if ( self.$el.find( '.forminator-quiz--result' ).length > 0 ) {
-									self.$el.find( '.forminator-quiz--result' ).html( data.data.finalText );
+									self.$el.find( '.forminator-quiz--result' ).html( resultText );
 								}
 
 								Object.keys( data.data.result ).forEach( function( key ) {
@@ -709,10 +729,10 @@
                                     // For multiple answers per question
                                     if ( undefined === data.data.result[key].answer ) {
                                         var answersArray = data.data.result[key].answers;
-                                        
+
                                         for ( var $i = 0; $i < answersArray.length; $i++ ) {
                                             var answer = parent.find( '[id|="' + answersArray[$i].id + '"]' ).closest( '.forminator-answer' );
-                                            
+
                                             // Check if selected answer is right or wrong.
                                             answer.addClass( responseClass );
                                             if ( 0 === answer.find( '.forminator-answer--status' ).html().length ) {
@@ -724,11 +744,11 @@
                                                 }
                                             }
                                         }
-                                        
+
                                     // For single answer per question
                                     } else {
                                         var answer = parent.find( '[id|="' + data.data.result[key].answer + '"]' ).closest( '.forminator-answer' );
-                                        
+
                                         // Check if selected answer is right or wrong.
                                         answer.addClass( responseClass );
                                         if ( 0 === answer.find( '.forminator-answer--status' ).html().length ) {
@@ -744,7 +764,7 @@
 								});
 							}
 
-							form.trigger( 'forminator:quiz:submit:success', [ ajaxData, formData ] ) ;
+							form.trigger( 'forminator:quiz:submit:success', [ ajaxData, formData, resultText ] ) ;
 
 						} else {
 							self.$el.find( 'button' ).removeAttr( 'disabled' );
@@ -759,29 +779,8 @@
 			});
 
 			$('body').on('click', '#forminator-quiz-leads-' + quiz_id + ' .forminator-lead-form-skip', function (e) {
-				$('#forminator-module-' + leads_id).css({
-					'height': 0,
-					'opacity': 0,
-					'overflow': 'hidden',
-					'visibility': 'hidden',
-					'pointer-events': 'none',
-					'margin': 0,
-					'padding': 0,
-					'border': 0
-				});
-				$(this).hide();
-				if( 'undefined' !== typeof self.settings.form_placement && 'beginning' === self.settings.form_placement ) {
-					self.$el.css({
-						'height': '',
-						'opacity': '',
-						'overflow': '',
-						'visibility': '',
-						'pointer-events': '',
-						'margin': '',
-						'padding': '',
-						'border': ''
-					});
-				}
+				self.showQuiz( $('#forminator-module-' + leads_id) );
+
 				if( 'undefined' !== typeof self.settings.form_placement && 'end' === self.settings.form_placement ) {
 					self.settings.form_placement = 'skip';
 					self.$el.submit();

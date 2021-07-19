@@ -491,6 +491,11 @@ class Forminator_Stripe extends Forminator_Field {
 					'payment_method' => $submitted_data['payment_method']
 				);
 
+				// Update receipt email if set on front-end
+				if ( isset( $submitted_data['receipt_email'] ) && ! empty( $submitted_data['receipt_email'] ) ) {
+					$options['receipt_email'] = $submitted_data['receipt_email'];
+				}
+
 				if ( ! empty( $metadata ) ) {
 					$options['metadata'] = $metadata;
 				}

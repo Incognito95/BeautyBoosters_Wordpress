@@ -22,6 +22,8 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 	 */
 	protected static $lead_data = array();
 
+	private static $steps_count = 1;
+
 	/**
 	 * Display form method
 	 *
@@ -143,12 +145,25 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 	 */
 	public function render_fields( $render = true ) {
 
-		$form_settings = $this->get_form_settings();
+		$form_settings   = $this->get_form_settings();
+		$with_pagination = ! empty( $form_settings['pagination'] );
+		$module_id       = $this->model->id;
 
 		$html = '';
 
 		$fields = $this->get_fields();
 		$num_fields = count( $fields );
+
+		if ( $with_pagination ) {
+			$step      = 1;
+			$next_step = 1;
+			$new_step  = true;
+
+			$page_indicator     = ! isset( $form_settings['page-indicator'] ) || $form_settings['page-indicator'];
+			$questions_per_page = empty( $form_settings['questions-per-page'] ) || 1 > $form_settings['questions-per-page']
+					? 1 : $form_settings['questions-per-page'];
+			self::$steps_count  = ceil( $num_fields/$questions_per_page );
+		}
 
 		$i = 0;
 
@@ -162,9 +177,23 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 
 			do_action( 'forminator_before_field_render', $field );
 
+			if ( $with_pagination ) {
+				$step = ceil( $i/$questions_per_page );
+				if ( $new_step ) {
+					$new_step = false;
+					$html    .= self::pagination_content_start( $module_id, $step-1, $page_indicator );
+				}
+			}
 				// Render field
 				$html .= $this->render_field( $field, $last_field );
 
+			if ( $with_pagination ) {
+				$next_step = ceil( ( $i + 1 )/$questions_per_page );
+				if ( $last_field || $step !== $next_step ) {
+					$new_step = true;
+					$html    .= self::pagination_content_end();
+				}
+			}
 			do_action( 'forminator_after_field_render', $field );
 		}
 
@@ -174,6 +203,39 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 			return apply_filters( 'forminator_render_fields_markup', $html, $fields );
 		}
 
+	}
+
+	/**
+	 * Return pagination content start markup
+	 *
+	 * @return string
+	 */
+	private static function pagination_content_start( $module_id, $step, $page_indicator ) {
+		$label = sprintf( __( 'Page %s', 'forminator' ), $step );
+
+		$html  = '<div role="tabpanel" id="forminator-custom-form-' . esc_attr( $module_id ) . '--page-' . esc_attr( $step ) . '" '
+				. 'class="forminator-pagination forminator-hidden" '
+				. 'aria-labelledby="forminator-custom-form-' . esc_attr( $module_id ) . '--page-' . esc_attr( $step ) . '-label" '
+				. 'data-step="' . esc_attr( $step ) . '" data-label="' . esc_attr( $label ) . '">';
+		$html .= '<div class="forminator-pagination--content">';
+		if ( $page_indicator ) {
+			$html .= '<div class="forminator-page-indicator"><span>';
+			$html .= esc_html( sprintf( __( 'Page %1$s of %2$s', 'forminator' ), $step+1, self::$steps_count ) );
+			$html .= '</span></div>';
+		}
+
+		return apply_filters( 'forminator_quiz_pagination_content_start_markup', $html );
+	}
+
+	/**
+	 * Return pagination end markup
+	 *
+	 * @return string
+	 */
+	private static function pagination_content_end() {
+		$html = '</div></div>';
+
+		return apply_filters( 'forminator_quiz_pagination_end_markup', $html );
 	}
 
 	/**
@@ -221,38 +283,23 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 			$field_slug = $field['slug'];
 		}
 
-		$question      = isset( $field['title'] ) ? $field['title'] : '';
-		$image         = isset( $field['image'] ) ? $field['image'] : '';
-		$image_alt     = '';
-		$answers       = isset( $field['answers'] ) ? $field['answers'] : '';
-		$has_question  = ( isset( $question ) && ! empty( $question ) );
-		$has_image     = ( isset( $image ) && ! empty( $image ) );
-		$has_image_alt = ( isset( $image_alt ) && ! empty( $image_alt ) );
-		$has_answers   = ( isset( $answers ) && ! empty( $answers ) );
+		$answers         = isset( $field['answers'] ) ? $field['answers'] : '';
+		$has_answers     = ( isset( $answers ) && ! empty( $answers ) );
+		$with_pagination = ! empty( $form_settings['pagination'] );
 		?>
 
 		<div
 			tabindex="0"
 			role="radiogroup"
 			id="<?php echo esc_html( $field_slug ); ?>"
-			class="forminator-question<?php echo ( true === $last_field ) ? ' forminator-last' : ''; ?>"
+			class="forminator-question<?php echo ( true === $last_field && ! $with_pagination ) ? ' forminator-last' : ''; ?>"
 			data-question-type="<?php echo ( isset( $field['type'] ) && 'knowledge' === $field['type'] ) ? 'knowledge' : 'personality'; ?>"
 			aria-labelledby="<?php echo esc_html( $field_slug ) . '-label'; ?>"
 			aria-describedby="<?php echo esc_html( $field_slug ) . '-description'; ?>"
 			aria-required="true"
 		>
 
-			<span id="<?php echo esc_html( $field_slug ) . '-label'; ?>" class="forminator-legend"><?php echo esc_html( $question ); ?></span>
-
-			<?php if ( $has_image ) { ?>
-				<div class="forminator-image"<?php echo ( $has_image_alt ) ? '' : ' aria-hidden="true"'; ?>>
-					<img
-						src="<?php echo esc_attr( $field['image'] ); ?>"
-						<?php echo ( $has_image_alt ) ? 'alt="' . esc_html( $image_alt ) . '"' : ''; ?>
-					/>
-				</div>
-			<?php } ?>
-
+			<?php echo $this->get_question_intro( $field, $field_slug ); ?>
 
 			<?php
 			if ( $has_answers ) {
@@ -352,7 +399,7 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 		ob_start();
 
 		$result_behav  = isset( $this->model->settings['results_behav'] ) ? $this->model->settings['results_behav'] : '';
-		$class         = ( isset( $result_behav ) && 'end' === $result_behav ) ? '' : 'forminator-submit-rightaway';
+		$class         = ( isset( $result_behav ) && 'end' === $result_behav || 'end' === $this->get_form_placement() ) ? '' : 'forminator-submit-rightaway';
 		$input_type    = ( isset( $result_behav ) && 'end' === $result_behav ) ? 'checkbox' : 'radio';
 		$uniq_id       = '-' . uniqid();
 		$field_slug    = uniqid();
@@ -364,37 +411,24 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 			$field_slug = $field['slug'];
 		}
 
-		$question      = $field['title'];
-		$image         = isset( $field['image'] ) ? $field['image'] : '';
-		$image_alt     = '';
-		$answers       = $field['answers'];
-		$has_question  = ( isset( $question ) && ! empty( $question ) );
-		$has_image     = ( ! empty( $image ) );
-		$has_image_alt = ( isset( $image_alt ) && ! empty( $image_alt ) );
-		$has_answers   = ( isset( $answers ) && ! empty( $answers ) );
-        $role          = 'radio' === $input_type ? 'radiogroup' : 'checkbox';
+		$answers         = $field['answers'];
+		$has_answers     = ( isset( $answers ) && ! empty( $answers ) );
+        $role            = 'radio' === $input_type ? 'radiogroup' : 'checkbox';
+		$with_pagination = ! empty( $form_settings['pagination'] );
 		?>
 
 		<div
 			tabindex="0"
 			role="<?php echo esc_attr( $role ); ?>"
 			id="<?php echo esc_html( $field_slug ); ?>"
-			class="forminator-question<?php echo ( true === $last_field ) ? ' forminator-last' : ''; ?>"
+			class="forminator-question<?php echo ( true === $last_field && ! $with_pagination ) ? ' forminator-last' : ''; ?>"
+			data-multichoice="<?php echo $this->is_muti_choice( $answers ); ?>"
 			aria-labelledby="<?php echo esc_html( $field_slug ) . '-label'; ?>"
 			aria-describedby="<?php echo esc_html( $field_slug ) . '-description'; ?>"
 			aria-required="true"
 		>
 
-			<span id="<?php echo esc_html( $field_slug ) . '-label'; ?>" class="forminator-legend"><?php echo esc_html( $question ); ?></span>
-
-			<?php if ( $has_image ) { ?>
-				<div class="forminator-image"<?php echo ( $has_image_alt ) ? '' : ' aria-hidden="true"'; ?>>
-					<img
-						src="<?php echo esc_attr( $field['image'] ); ?>"
-						<?php echo ( $has_image_alt ) ? 'alt="' . esc_html( $image_alt ) . '"' : ''; ?>
-					/>
-				</div>
-			<?php } ?>
+			<?php echo $this->get_question_intro( $field, $field_slug ); ?>
 
 			<?php
 			if ( $has_answers ) {
@@ -484,6 +518,67 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 	}
 
 	/**
+	 * Returns true if there is more than 1 correct answer
+	 *
+	 * @param array  $answers Array of answers.
+	 * @return string
+	 */
+	private function is_muti_choice( $answers ) {
+		$count = 0;
+
+		foreach ( $answers as $answer ) {
+			if ( isset( $answer['toggle'] ) && filter_var( $answer['toggle'], FILTER_VALIDATE_BOOLEAN ) ) {
+				$count++;
+			}
+		}
+
+		return $count > 1 ? 'true' : 'false';
+	}
+
+	/**
+	 * Returns question intro according the order.
+	 *
+	 * @param array  $field Field data.
+	 * @param string $field_slug Field slug.
+	 * @return string
+	 */
+	private function get_question_intro( $field, $field_slug ) {
+		global $wp_embed;
+		$question    = $field['title'];
+		$description = isset( $field['question_description'] ) ? $field['question_description'] : '';
+		$image       = isset( $field['image'] ) ? $field['image'] : '';
+		$image_alt   = isset( $field['image_alt'] ) ? $field['image_alt'] : '';
+
+		$question = '<span id="' . esc_attr( $field_slug ) . '-label" class="forminator-legend">' . esc_html( $question ) . '</span>';
+
+		if ( $description ) {
+			$description = '<div class="forminator-question--description">' . $wp_embed->autoembed( $description ) . '</div>';
+		}
+
+		if ( ! empty( $image ) ) {
+			$image = '<div class="forminator-image"' . ( ! empty( $image_alt ) ? '' : ' aria-hidden="true"' ) . '>' .
+				'<img src="' . esc_attr( $field['image'] ) . '"' .
+					( ! empty( $image_alt ) ? ' alt="' . esc_attr( $image_alt ) . '"' : '' ) . ' />' .
+			'</div>';
+		}
+
+		$order = ! empty( $this->model->settings['order'] )
+				? $this->model->settings['order'] : array();
+
+		$incorrect_items = array_diff( array( 'question', 'description', 'image' ), $order );
+		if ( empty( $order ) || $incorrect_items ) {
+			$html = $question . $description . $image;
+		} else {
+			$html = '';
+			foreach ( $order as $item ) {
+				$html .= $$item;
+			}
+		}
+
+		return $html;
+	}
+
+	/**
 	 * Return Save to preview message
 	 *
 	 * @since 1.0
@@ -527,10 +622,11 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 	 * @return string
 	 */
 	public function render_form_header() {
+		global $wp_embed;
 		ob_start();
 
 		// TO-DO: Get featured image alt text.
-		$feat_image_alt = '';
+		$feat_image_alt = ! empty( $this->model->settings['quiz_feat_image_alt'] ) ? $this->model->settings['quiz_feat_image_alt'] : '';
 		?>
 
 		<?php if ( isset( $this->model->settings['quiz_name'] ) && ! empty( $this->model->settings['quiz_name'] ) ): ?>
@@ -553,11 +649,24 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 				$quiz_name = forminator_get_name_from_model( $this->model );
 				$content   = str_ireplace( '{quiz_name}', $quiz_name, $content );
 			endif; ?>
-			<div class="forminator-quiz--description"><?php echo wp_kses_post( $content ); ?></div>
+			<div class="forminator-quiz--description"><?php echo $wp_embed->autoembed( wp_kses_post( $content ) ); ?></div>
 		<?php endif; ?>
 
 		<?php
-		return ob_get_clean();
+		$intro = ob_get_clean();
+
+		if ( ! empty( $this->model->settings['pagination'] ) ) {
+			$start_text = $this->get_start_button_text();
+			$html  = '<div class="forminator-quiz-intro">' . $intro;
+			if ( ! $this->has_lead() || 'beginning' !== $this->get_form_placement() ) {
+				$html .= '<button class="forminator-button forminator-quiz-start" style="margin: 0 auto; display: block;">' . esc_html( $start_text ) . '</button>';
+			}
+			$html .= '</div>';
+		} else {
+			$html = $intro;
+		}
+
+		return $html;
 	}
 
 	public function get_submit_data() {
@@ -604,6 +713,7 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 		// FIX:
 		// https://app.asana.com/0/385581670491499/789649735369091/f
 		$disabled = '';
+		$html     = '';
 
 		if ( $this->is_preview ) {
 			$disabled = 'aria-disabled="true" disabled="disabled"';
@@ -613,56 +723,68 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 		$post_id = $this->get_post_id();
 
 		$submit_data  = $this->get_submit_data();
+		$pagination   = ! empty( $this->model->settings['pagination'] );
 		$result_behav = isset( $this->model->settings['results_behav'] ) ? $this->model->settings['results_behav'] : '';
 		$lead_result  = 'beginning' === $this->get_form_placement() ? $result_behav : 'end';
 		$current_url  = $this->is_ajax_load( $this->is_preview ) && isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : forminator_get_current_url();
+		$classes      = $submit_data['class'];
 
-		$html = '<div class="forminator-quiz--result">';
+		if ( $pagination ) {
+			$classes .= ' forminator-pagination-submit';
+			$html    .= self::pagination_content_start( $form_id, self::$steps_count, false );
+		}
+		$html .= '<div class="forminator-quiz--result">';
 		if ( 'knowledge' === $this->model->quiz_type && $this->has_lead() && 'end' === $lead_result ) {
+			$label = esc_html__( 'View Results', 'forminator' );
 
 			if ( 'material' === $this->get_quiz_theme() ) {
 
 				$html .= sprintf(
 					'<button class="forminator-button forminator-button-submit %s" %s data-loading="%s" aria-live="polite"><span class="forminator-button--mask" aria-label="hidden"></span><span class="forminator-button--text">%s</span></button>',
-					$submit_data['class'],
+					$classes,
 					$disabled,
 					$submit_data['loading'],
-					esc_html__( 'View Results', 'forminator' )
+					$label
 				);
 			} else {
 
 				$html .= sprintf(
 					'<button class="forminator-button forminator-button-submit %s" data-loading="%s" %s>%s</button>',
-					$submit_data['class'],
+					$classes,
 					$submit_data['loading'],
 					$disabled,
-					esc_html__( 'View Results', 'forminator' )
+					$label
 				);
 			}
 		} elseif ( 'nowrong' === $this->model->quiz_type || 'end' === $result_behav ) {
+			$label = $submit_data['label'];
 
 				if ( 'material' === $this->get_quiz_theme() ) {
 
 					$html .= sprintf(
 						'<button class="forminator-button forminator-button-submit %s" %s data-loading="%s" aria-live="polite"><span class="forminator-button--mask" aria-label="hidden"></span><span class="forminator-button--text">%s</span></button>',
-						$submit_data['class'],
+						$classes,
 						$disabled,
 						$submit_data['loading'],
-						$submit_data['label']
+						$label
 					);
 				} else {
 
 					$html .= sprintf(
 						'<button class="forminator-button forminator-button-submit %s" data-loading="%s" %s>%s</button>',
-						$submit_data['class'],
+						$classes,
 						$submit_data['loading'],
 						$disabled,
-						$submit_data['label']
+						$label
 					);
 				}
 			}
 
 		$html .= '</div>';
+
+		if ( $pagination ) {
+			$html .= self::pagination_content_end();
+		}
 
 		$html .= $nonce;
 		$html .= sprintf( '<input type="hidden" name="has_lead" value="%s">', $this->has_lead() );
@@ -720,7 +842,14 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 	 * @param array  $properties CSS properties.
 	 * @return string
 	 */
-	protected function get_css_prefix( $prefix, $properties ) {
+	protected static function get_css_prefix( $prefix, $properties, $slug ) {
+
+		if ( isset( $properties['hasLeads'] ) && filter_var( $properties['hasLeads'], FILTER_VALIDATE_BOOLEAN ) ) {
+			$prefix = '.forminator-ui#forminator-quiz-leads-' . $properties['form_id'];
+		} else {
+			$prefix = '.forminator-ui.forminator-' . $slug . '-' . $properties['form_id'];
+		}
+
 		return $prefix . ' ';
 	}
 
@@ -769,59 +898,27 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 		// on clean design, disable google fonts
 		if ( 'none' !== $this->get_quiz_theme() ) {
 
-			$configs = array();
 			if ( 'nowrong' === $quiz_type ) {
 				if ( isset( $settings['nowrong-toggle-typography'] ) ) {
 					$custom_typography_enabled = filter_var( $settings['nowrong-toggle-typography'], FILTER_VALIDATE_BOOLEAN );
 				}
-				$configs = array(
-					'nowrong-title-font-family',
-					'nowrong-description-font-family',
-					'nowrong-question-font-family',
-					'nowrong-answer-font-family',
-					'nowrong-submit-font-family',
-					'nowrong-result-quiz-font-family',
-					'nowrong-result-retake-font-family',
-					'nowrong-result-title-font-family',
-					'nowrong-result-description-font-family',
-					'nowrong-sshare-font-family',
-				);
 			} elseif ( 'knowledge' === $quiz_type ) {
 				if ( isset( $settings['knowledge-toggle-typography'] ) ) {
 					$custom_typography_enabled = filter_var( $settings['knowledge-toggle-typography'], FILTER_VALIDATE_BOOLEAN );
 				}
-				$configs = array(
-					'knowledge-title-font-family',
-					'knowledge-description-font-family',
-					'knowledge-question-font-family',
-					'knowledge-answer-font-family',
-					'knowledge-phrasing-font-family',
-					'knowledge-submit-font-family',
-					'knowledge-summary-font-family',
-					'knowledge-sshare-font-family',
-				);
 			}
 
-			foreach ( $configs as $config ) {
-				if ( ! $custom_typography_enabled ) {
-					$fonts[ $config ] = false;
+			foreach ( $settings as $setting_key => $font_family_name ) {
+				if ( ! strpos( $setting_key, '-font-family' ) ) {
+					continue;
+				}
+				if ( ! $custom_typography_enabled || empty( $font_family_name ) || 'custom' === $font_family_name ) {
+					$fonts[ $setting_key ] = false;
 					continue;
 				}
 
-				if ( isset( $settings[ $config ] ) ) {
-					$font_family_name = $settings[ $config ];
-
-					if ( empty( $font_family_name ) || 'custom' === $font_family_name ) {
-						$fonts[ $config ] = false;
-						continue;
-					}
-
-					$fonts[ $config ] = $font_family_name;
-					continue;
-				}
-				$fonts[ $config ] = false;
+				$fonts[ $setting_key ] = $font_family_name;
 			}
-
 		}
 
 		/**
@@ -836,8 +933,9 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 		 */
 		$fonts = apply_filters( 'forminator_quiz_google_fonts', $fonts, $quiz_id, $quiz_type, $settings );
 
-		return $fonts;
+		$fonts = array_unique( $fonts );
 
+		return $fonts;
 	}
 
 	/**
@@ -991,6 +1089,13 @@ class Forminator_QForm_Front extends Forminator_Render_Form {
 			'has_quiz_loader' => $this->form_has_loader( $form_properties ),
 			'hasLeads'        => $this->has_lead()
 		);
+
+		if ( ! empty( $form_properties['settings']['text-next'] ) ) {
+			$options['text_next'] = $form_properties['settings']['text-next'];
+		}
+		if ( ! empty( $form_properties['settings']['text-previous'] ) ) {
+			$options['text_prev'] = $form_properties['settings']['text-previous'];
+		}
 
 		if ( $this->has_lead() ) {
 			$options['form_placement'] = $this->get_form_placement();

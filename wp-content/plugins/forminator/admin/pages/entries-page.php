@@ -195,19 +195,22 @@ class Forminator_Entries_Page extends Forminator_Admin_Page {
 	public function render_form_switcher( $form_type = 'forminator_forms', $form_id = 0 ) {
 		$html = '<select name="form_id" data-allow-search="1" data-minimum-results-for-search="0" class="sui-select sui-select-sm sui-select-inline">';
 
-		$empty_option = '';
+		$empty_option = __( 'Choose Form', 'forminator' );
+		$method       = 'get_forms';
 
-		if ( $form_type === Forminator_Form_Model::model()->get_post_type() ) {
-			$empty_option = __( 'Choose Form', 'forminator' );
-		} elseif ( $form_type === Forminator_Poll_Model::model()->get_post_type() ) {
+		if ( $form_type === Forminator_Poll_Model::model()->get_post_type() ) {
 			$empty_option = __( 'Choose Poll', 'forminator' );
+			$method       = 'get_polls';
 		} elseif ( $form_type === Forminator_Quiz_Model::model()->get_post_type() ) {
 			$empty_option = __( 'Choose Quiz', 'forminator' );
+			$method       = 'get_quizzes';
 		}
 
 		$html .= '<option value="" ' . selected( 0, $form_id, false ) . '>' . $empty_option . '</option>';
 
-		$forms = $this->get_forms( $form_type );
+		$forms = Forminator_API::$method( null, 1, 999 );
+
+		apply_filters( 'forminator_entries_get_forms', $forms, $form_type );
 
 		foreach ( $forms as $form ) {
 			/**@var Forminator_Base_Form_Model $form */
@@ -218,34 +221,6 @@ class Forminator_Entries_Page extends Forminator_Admin_Page {
 		$html .= '</select>';
 
 		return $html;
-	}
-
-	/**
-	 * Get list of forms from
-	 *
-	 * @since 1.0.5
-	 *
-	 * @return mixed
-	 */
-	public function get_forms( $form_type = 'forminator_forms' ) {
-		//$form_type = $this->get_current_form_type();
-		switch ( $form_type ) {
-			case 'forminator_forms':
-				//TODO: lazy load this
-				$forms = Forminator_Form_Model::model()->get_models( 99 );
-				break;
-			case 'forminator_polls':
-				$forms = Forminator_Poll_Model::model()->get_models( 99 );
-				break;
-			case 'forminator_quizzes':
-				$forms = Forminator_Quiz_Model::model()->get_models( 99 );
-				break;
-			default:
-				$forms = array();
-				break;
-		}
-
-		return apply_filters( 'forminator_entries_get_forms', $forms, $form_type );
 	}
 
 	/**

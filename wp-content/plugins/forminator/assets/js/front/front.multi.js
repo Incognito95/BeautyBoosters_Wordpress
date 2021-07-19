@@ -22,6 +22,7 @@
 		    messages: {},
 		    conditions: {},
 		    inline_validation: false,
+		    print_value: false,
 		    chart_design: 'bar',
 		    chart_options: {},
 		    forminator_fields: [],
@@ -177,6 +178,7 @@
 			// initiate merge tags
 			$( form_selector ).forminatorFrontMergeTags({
 				forminatorFields: self.settings.forminator_fields,
+				print_value: self.settings.print_value,
 			});
 
 			//initiate pagination
@@ -362,7 +364,7 @@
 				lead_placement = 'undefined' !== typeof self.settings.form_placement ? self.settings.form_placement : '',
 				quiz_id = 'undefined' !== typeof self.settings.quiz_id ? self.settings.quiz_id : 0;
 
-			this.$el.find('.forminator-button').each(function () {
+			this.$el.find('.forminator-button:not(.forminator-quiz-start)').each(function () {
 				$(this).prop("disabled", true);
 			});
 
@@ -372,6 +374,32 @@
 
 			this.$el.find('.forminator-result--info button').on('click', function () {
 				location.reload();
+			});
+
+			$('#forminator-quiz-leads-' + quiz_id + ' .forminator-quiz-intro .forminator-quiz-start').on('click', function(e){
+				e.preventDefault();
+				$(this).closest( '.forminator-quiz-intro').hide();
+				self.$el.prepend('<button class="forminator-button forminator-quiz-start forminator-hidden"></button>')
+						.find('.forminator-quiz-start').trigger('click').remove();
+			});
+
+			this.$el.on('click', '.forminator-quiz-start', function (e) {
+				e.preventDefault();
+				self.$el.find('.forminator-quiz-intro').hide();
+				self.$el.find('.forminator-pagination').removeClass('forminator-hidden');
+				//initiate pagination
+				var args = {
+					totalSteps: self.$el.find('.forminator-pagination').length - 1, //subtract the last step with result
+					step: 0,
+					quiz: true
+				};
+				if ( self.settings.text_next ) {
+					args.next_button = self.settings.text_next;
+				}
+				if ( self.settings.text_prev ) {
+					args.prev_button = self.settings.text_prev;
+				}
+				$(self.element).forminatorFrontPagination(args);
 			});
 
 			if( 'end' !== lead_placement ) {
@@ -432,23 +460,37 @@
 			});
 
 			this.$el.on('change', '.forminator-answer input', function (e) {
-				var count          = 0,
-				    amount_answers = self.$el.find('.forminator-question').length;
+				var paginated      = !!$( this ).closest('.forminator-pagination').length,
+					parent         = paginated ? $( this ).closest('.forminator-pagination') : self.$el,
+					count          = parent.find('.forminator-answer input:checked').length,
+				    amount_answers = parent.find('.forminator-question').length,
+				    parentQuestion = $( this ).closest( '.forminator-question' ),
+					isMultiChoice  = parentQuestion.data( 'multichoice' )
+					;
 
-				self.$el.find('.forminator-answer input').each(function () {
-					if ($(this).prop('checked')) {
-						count++;
-					}
-
-					if (count === amount_answers) {
-						self.$el.find('.forminator-button').each(function () {
-							$(this).prop("disabled", false);
-						});
+				self.$el.find('.forminator-button:not(.forminator-button-back)').each(function () {
+					var disabled = count < amount_answers;
+					$( this ).prop('disabled', disabled);
+					if ( paginated ) {
+						if ( disabled ) {
+							$( this ).addClass('forminator-disabled');
+						} else {
+							$( this ).removeClass('forminator-disabled');
+						}
 					}
 				});
 
-			});
+				// If multichoice is false, uncheck other options
+				if( this.checked && false === isMultiChoice ) {
+					parentQuestion
+					.find( '.forminator-answer' )
+					.not( $( this ).parent( '.forminator-answer' ) )
+					.each( function( i, el ){
+						$( el ).find( '> input' ).prop( 'checked', false );
+					});
+				}
 
+			});
 		},
 
 		small_form: function () {
@@ -528,7 +570,6 @@
 			var form        = $( form_selector ),
 				input       = form.find( '.forminator-input' ),
 				textarea    = form.find( '.forminator-textarea' ),
-				select      = form.find( '.forminator-select' ),
 				select2     = form.find( '.forminator-select2' ),
 				multiselect = form.find( '.forminator-multiselect' ),
 				stripe		= form.find( '.forminator-stripe-element' )
@@ -552,16 +593,7 @@
 				});
 			}
 
-			if ( select2.length ) {
-				FUI.select2();
-			}
-
-			if ( ( isDefault || isBold || isFlat || isMaterial ) && select.length ) {
-
-				select.each( function() {
-					FUI.select( this );
-				});
-			}
+			FUI.select2( select2.length );
 
 			if ( multiselect.length ) {
 				FUI.multiSelectStates( multiselect );
@@ -597,7 +629,8 @@
 
 		responsive_captcha: function ( form_selector ) {
 			$( form_selector ).find('.forminator-g-recaptcha').each(function () {
-				if ($(this).is(':visible')) {
+				var badge = $(this).data('badge'); // eslint-disable-line
+				if ($(this).is(':visible') && 'inline' === badge ) {
 					var width = $(this).parent().width(),
 					    scale = 1;
 					if (width < 302) {
@@ -1065,7 +1098,7 @@
 				    };
 
 				if (size === 'invisible') {
-					data.badge    = 'inline';
+					data.badge    = $(captcha_field).data('badge');
 					data.callback = function (token) {
 						$(self.element).trigger('submit.frontSubmit');
 					};
@@ -1089,12 +1122,16 @@
 		},
 
 		addCaptchaAria: function ( captcha_field ) {
-			var gRecaptchaResponse = $( captcha_field ).find( '.g-recaptcha-response' );
+			var gRecaptchaResponse = $( captcha_field ).find( '.g-recaptcha-response' ),
+				gRecaptcha = $( captcha_field ).find( '>div' );
 
 			if ( 0 !== gRecaptchaResponse.length ) {
 				gRecaptchaResponse.attr( "aria-hidden", "true" );
 				gRecaptchaResponse.attr( "aria-label", "do not use" );
 				gRecaptchaResponse.attr( "aria-readonly", "true" );
+			}
+			if ( 0 !== gRecaptcha.length ) {
+				gRecaptcha.css( 'z-index', 99 );
 			}
 		},
 

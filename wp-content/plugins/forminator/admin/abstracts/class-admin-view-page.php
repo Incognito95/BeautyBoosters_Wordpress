@@ -499,7 +499,7 @@ abstract class Forminator_Admin_View_Page extends Forminator_Admin_Page {
 				$meta_data = forminator_find_addon_meta_data_from_entry_model( $registered_addon, $entry_model );
 
 				$addon_additional_items = $hooks->on_render_entry( $entry_model, $meta_data );// run and forget.
-				$addon_additional_items = self::format_addon_additional_items( $addon_additional_items );
+				$addon_additional_items = static::format_addon_additional_items( $addon_additional_items );
 				$additional_items       = array_merge( $additional_items, $addon_additional_items );
 			} catch ( Exception $e ) {
 				forminator_addon_maybe_log( $registered_addon->get_slug(), 'failed to on_render_entry', $e->getMessage() );
@@ -541,7 +541,7 @@ abstract class Forminator_Admin_View_Page extends Forminator_Admin_Page {
 
 			$registered_addons = forminator_get_registered_addons();
 			$method            = 'get_addon_' . static::$module_slug . '_hooks';
-			$class_name        = 'Forminator_Addon_' . forminator_get_prefix( static::$module_slug, 'c', true ) . '_Hooks_Abstract';
+			$class_name        = 'Forminator_Addon_' . static::$module_slug . '_Hooks_Abstract';
 			foreach ( $registered_addons as $registered_addon ) {
 				try {
 					$hooks = $registered_addon->{$method}( $this->form_id );

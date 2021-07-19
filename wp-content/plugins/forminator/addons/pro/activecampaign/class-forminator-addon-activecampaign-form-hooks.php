@@ -76,21 +76,6 @@ class Forminator_Addon_Activecampaign_Form_Hooks extends Forminator_Addon_Form_H
 
 		forminator_addon_maybe_log( __METHOD__, $submitted_data );
 
-		$lead_entry_fields = array();
-		$data_entry = isset( $submitted_data['entry_id'] ) ? $submitted_data['entry_id'] : 0;
-		if ( ! empty( $data_entry ) ) {
-			$submitted_data = forminator_lead_form_data( $data_entry );
-			if ( ! empty( $submitted_data ) ) {
-				foreach ( $submitted_data as $key => $submit ) {
-					$lead_entry_fields[] = array(
-						'name'  => $key,
-						'value' => $submit,
-					);
-				}
-			}
-		}
-		$form_entry_fields = $lead_entry_fields;
-
 		$addon_setting_values = $this->form_settings_instance->get_form_settings_values();
 		$form_settings        = $this->form_settings_instance->get_form_settings();
 

@@ -9,6 +9,8 @@ class Forminator_Admin_Data {
 
 	public $core = null;
 
+	public static $pages = null;
+
 	/**
 	 * Current Nonce
 	 *
@@ -67,13 +69,17 @@ class Forminator_Admin_Data {
 	 *
 	 * @return mixed
 	 */
-	public function get_pages() {
+	public static function get_pages() {
+		if ( ! is_null( self::$pages ) ) {
+			return self::$pages;
+		}
+
 		global $wpdb;
 
 		$sql = "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type = 'page' AND post_status = 'publish' ORDER BY post_title ASC";
-		$pages = $wpdb->get_results( $sql );
+		self::$pages = $wpdb->get_results( $sql );
 
-		return $pages;
+		return self::$pages;
 	}
 
 	/**
@@ -90,6 +96,7 @@ class Forminator_Admin_Data {
 		return array(
 			'ajaxUrl'                        => forminator_ajax_url(),
 			'adminUrl'                       => admin_url(),
+			'akismetEnabled'                 => is_plugin_active( 'akismet/akismet.php' ),
 			'application'                    => '',
 			'is_touch'                       => wp_is_mobile(),
 			'dashboardUrl'                   => menu_page_url( 'forminator', false ),
@@ -147,7 +154,7 @@ class Forminator_Admin_Data {
 			'postCategories'                 => forminator_post_categories(),
 			'isPro'                          => FORMINATOR_PRO,
 			'userRoles'                      => get_editable_roles(),
-			'pages'                          => $this->get_pages(),
+			'pages'                          => self::get_pages(),
 			'hasPayPal'                      => forminator_has_paypal_settings(),
 			'pollAnswerColors'               => forminator_get_poll_chart_colors(),
 			'isMainSite'                     => forminator_is_main_site(),

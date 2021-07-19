@@ -45,7 +45,7 @@ class Forminator_Loader {
 				// Get class name
 				$class_name = str_replace( '.php', '', $file );
 				// Include file
-				include $path;
+				include_once $path;
 
 				// Init class
 				$object = $this->init( $class_name );

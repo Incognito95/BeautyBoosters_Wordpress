@@ -13,7 +13,7 @@ class Forminator_Quiz_Model extends Forminator_Base_Form_Model {
 	 *
 	 * @var string
 	 */
-	protected static $module_slug = 'quiz';
+	public static $module_slug = 'quiz';
 
 	/**
 	 * @var string

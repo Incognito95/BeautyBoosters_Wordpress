@@ -135,7 +135,7 @@ class Forminator_Admin {
 		<!-- Load shared module markup -->
 		<div
 			id="app"
-			class="sui-wrap"
+			class="sui-wrap sui-subscription-notice"
 			data-prop="forminator_prelaunch_subscriptions_notice_dismissed"
 			data-nonce="<?php echo esc_attr( wp_create_nonce( 'forminator_dismiss_prelaunch_subscriptions' ) ); ?>"
 		></div>

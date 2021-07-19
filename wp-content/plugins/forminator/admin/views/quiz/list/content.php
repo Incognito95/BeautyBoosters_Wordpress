@@ -5,13 +5,13 @@
 $search_keyword = null;
 $is_search = false;
 $search_module_nonce = esc_attr( 'forminator-nonce-search-module' );
-if ( isset( $_GET['search'] ) && strlen( trim( $_GET['search'] ) ) && check_admin_referer( $search_module_nonce, $search_module_nonce ) ) {
-	$search_keyword = sanitize_text_field( $_GET['search'] );
+if ( isset( $_GET['module-search'] ) && strlen( trim( $_GET['module-search'] ) ) ) {
+	$search_keyword = sanitize_text_field( $_GET['module-search'] );
 	$is_search 		= true;
 }
 
 // Get modules
-$modules 	  = $this->getModules( $search_keyword );
+$modules = $this->getModules();
 
 // Count total quizzes
 $count        = ! $is_search ? $this->countModules() : count( $modules );
@@ -19,8 +19,9 @@ $count        = ! $is_search ? $this->countModules() : count( $modules );
 // Start date for retrieving the information of the last 30 days in sql format
 $sql_month_start_date = date( 'Y-m-d H:i:s', strtotime( '-30 days midnight' ) );// phpcs:ignore
 
-$entry_type = 'quizzes';
-$most_entry = Forminator_Form_Entry_Model::get_most_entry( $entry_type );
+$entry_type  = 'quizzes';
+$most_entry  = Forminator_Form_Entry_Model::get_most_entry( $entry_type );
+$wizard_page = null;
 if ( $most_entry ) {
 	$most_entry_model = Forminator_Quiz_Model::model()->load( $most_entry->form_id );
 	$wizard_page      = 'forminator-' . ( 'nowrong' === $most_entry_model->quiz_type ? $most_entry_model->quiz_type : 'knowledge' ) . '-wizard';

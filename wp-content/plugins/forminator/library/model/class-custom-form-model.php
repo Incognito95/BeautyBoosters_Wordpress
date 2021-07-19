@@ -13,7 +13,7 @@ class Forminator_Form_Model extends Forminator_Base_Form_Model {
 	 *
 	 * @var string
 	 */
-	protected static $module_slug = 'form';
+	public static $module_slug = 'form';
 
 	protected $post_type = 'forminator_forms';
 

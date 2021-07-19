@@ -13,7 +13,7 @@ class Forminator_Poll_Model extends Forminator_Base_Form_Model {
 	 *
 	 * @var string
 	 */
-	protected static $module_slug = 'poll';
+	public static $module_slug = 'poll';
 
 	protected $post_type = 'forminator_polls';
 

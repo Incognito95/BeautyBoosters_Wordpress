@@ -273,29 +273,6 @@ class Forminator_Select extends Forminator_Field {
 				$option_default    = isset( $option['default'] ) ? filter_var( $option['default'], FILTER_VALIDATE_BOOLEAN ) : false;
 				$calculation_value = $calc_enabled && isset( $option['calculation'] ) ? esc_html( $option['calculation'] ) : 0.0;
 
-                // Check if Pre-fill parameter used
-                if( $this->has_prefill( $field ) ) {
-                    // We have pre-fill parameter, use its value or $value
-                    $prefill = $this->get_prefill( $field, false );
-
-                    if( $prefill === $value ) {
-                        $option_default = true;
-                    }
-                }
-
-				if ( isset( $is_limit ) && 'enable' === $is_limit && ! empty ( $limit ) ) {
-
-					$entries = Forminator_Form_Entry_Model::select_count_entries_by_meta_field(
-						$settings['form_id'],
-						$name,
-						$value
-					);
-
-					if ( $limit <= $entries ) {
-						continue;
-					}
-				}
-
 				// Check if Pre-fill parameter used
 				if ( $this->has_prefill( $field ) ) {
 					// We have pre-fill parameter, use its value or $value

@@ -132,18 +132,33 @@ class Forminator_MultiValue extends Forminator_Field {
 		$value_type  = trim( isset( $field['value_type'] ) ? $field['value_type'] : "multiselect" );
 		$description = self::get_property( 'description', $field, '' );
 		$label       = esc_html( self::get_property( 'field_label', $field, '' ) );
-		$class       = ( 'horizontal' === self::get_property( 'layout', $field, '' ) ) ? 'forminator-checkbox forminator-checkbox-inline' : 'forminator-checkbox';
 		$design      = $this->get_form_style( $settings );
 
 		$calc_enabled = self::get_property( 'calculations', $field, false, 'bool' );
+		$images_enabled		  = self::get_property( 'enable_images', $field, false );
+		$images_enabled		  = filter_var( $images_enabled, FILTER_VALIDATE_BOOLEAN );
+		$input_visibility 	  = self::get_property( 'input_visibility', $field, 'true' );
+		$input_visibility 	  = filter_var( $input_visibility, FILTER_VALIDATE_BOOLEAN );
 
-		$html .= '<div class="forminator-field">';
+		$html .= sprintf(
+			'<div role="group" class="forminator-field" aria-labelledby="%s">',
+			'forminator-checkbox-group-' . $uniq_id . '-label'
+		);
 
 		if ( $label ) {
 			if ( $required ) {
-				$html .= sprintf( '<label class="forminator-label">%s %s</label>', $label, forminator_get_required_icon() );
+				$html .= sprintf(
+					'<h4 id="%s" class="forminator-label">%s %s</h4>',
+					'forminator-checkbox-group-' . $uniq_id . '-label',
+					$label,
+					forminator_get_required_icon()
+				);
 			} else {
-				$html .= sprintf( '<label class="forminator-label">%s</label>', $label );
+				$html .= sprintf(
+					'<h4 id="%s" class="forminator-label">%s</h4>',
+					'forminator-checkbox-group-' . $uniq_id . '-label',
+					$label
+				);
 			}
 		}
 
@@ -152,6 +167,24 @@ class Forminator_MultiValue extends Forminator_Field {
 			$input_id          = $id . '-' . $i . '-' . $uniq_id;
 			$option_default    = isset( $option['default'] ) ? filter_var( $option['default'], FILTER_VALIDATE_BOOLEAN ) : false;
 			$calculation_value = $calc_enabled && isset( $option['calculation'] ) ? $option['calculation'] : 0.0;
+			$option_image_url  = array_key_exists( 'image', $option ) ? $option['image'] : '';
+			$option_label      = '<span class="forminator-checkbox-label">' . esc_html( $option['label'] ) . '</span>';
+			$aria_label        = '<span class="forminator-screen-reader-only">' . esc_html( $option['label'] ) . '</span>';
+
+			$class = 'forminator-checkbox';
+
+			if ( $images_enabled && ! empty( $option_image_url ) ) {
+
+				$class .= ' forminator-has_image';
+
+				if ( $input_visibility ) {
+					$class .= ' forminator-has_box';
+				}
+			}
+
+			if ( 'horizontal' === self::get_property( 'layout', $field, '' ) ) {
+				$class .= ' forminator-checkbox-inline';
+			}
 
 			$selected = false;
 
@@ -176,7 +209,7 @@ class Forminator_MultiValue extends Forminator_Field {
 
 			$selected = $selected ? 'checked="checked"' : '';
 
-			$html .= sprintf( '<label for="%s" class="' . $class . '">', $input_id );
+			$html .= '<label for="' . esc_attr( $input_id ) . '" class="' . esc_attr( $class ) . '" title="' . esc_attr( $option['label'] ) . '">';
 
 				$html .= sprintf(
 					'<input type="checkbox" name="%s" value="%s" id="%s" data-calculation="%s" %s />',
@@ -187,8 +220,40 @@ class Forminator_MultiValue extends Forminator_Field {
 					$selected
 				);
 
-				$html .= '<span aria-hidden="true"></span>';
-				$html .= sprintf( '<span>%s</span>', esc_html( $option['label'] ) );
+				if ( $input_visibility && ( $images_enabled && ! empty( $option_image_url ) ) ) {
+					// Bullet + Label.
+					$html .= '<span class="forminator-checkbox-box" aria-hidden="true"></span>';
+					$html .= $option_label;
+
+					// Image.
+					if ( 'none' === $design ) {
+						$html .= '<img class="forminator-checkbox-image" src="' . esc_url( $option_image_url ) . '" aria-hidden="true" />';
+					} else {
+						$html .= '<span class="forminator-checkbox-image" aria-hidden="true">';
+							$html .= '<span style="background-image: url(' . esc_url( $option_image_url ) . ');"></span>';
+						$html .= '</span>';
+					}
+				} else if ( ! $input_visibility && ( $images_enabled && ! empty( $option_image_url ) ) ) {
+
+					// Image.
+					if ( 'none' === $design ) {
+						$html .= '<img class="forminator-checkbox-image" src="' . esc_url( $option_image_url ) . '" aria-hidden="true" />';
+					} else {
+						$html .= '<span class="forminator-checkbox-image" aria-hidden="true">';
+							$html .= '<span style="background-image: url(' . esc_url( $option_image_url ) . ');"></span>';
+						$html .= '</span>';
+					}
+
+					// Aria Label.
+					$html .= $aria_label;
+
+				} else {
+
+					// Bullet + Label.
+					$html .= '<span class="forminator-checkbox-box" aria-hidden="true"></span>';
+					$html .= $option_label;
+
+				}
 
 			$html .= '</label>';
 

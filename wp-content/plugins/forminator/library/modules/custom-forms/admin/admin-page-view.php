@@ -49,7 +49,7 @@ class Forminator_CForm_Page extends Forminator_Admin_Module_Edit_Page {
 	 *
 	 * @return array
 	 */
-	protected function module_array( $id, $title, $views, $date, $status, $model ) {
+	protected static function module_array( $id, $title, $views, $date, $status, $model ) {
 		return array(
 					"id"              => $id,
 					"title"           => $title,

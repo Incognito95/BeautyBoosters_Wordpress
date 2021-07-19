@@ -1822,13 +1822,20 @@ class Forminator_CForm_Front extends Forminator_Render_Form {
 	 */
 	public function get_button_markup() {
 
-		$html     = '';
-		$button   = $this->get_submit_button_text();
+		$html  = '';
+		$class = 'forminator-button forminator-button-submit';
+
+		if ( empty( $this->lead_model->id ) || empty( $this->lead_model->settings['pagination'] )
+				|| ! empty( $this->lead_model->settings )
+				&& 'end' === $this->get_form_placement( $this->lead_model->settings ) ) {
+			$button = $this->get_submit_button_text();
+		} else {
+			$class .= ' forminator-quiz-start';
+			$button = $this->get_start_button_text( $this->lead_model->settings );
+		}
 		$settings = $this->get_form_settings();
 
 		$custom_class = $this->get_submit_custom_clas();
-
-		$class = 'forminator-button forminator-button-submit';
 
 		if ( $custom_class && ! empty( $custom_class ) ) {
 			$class .= ' ' . $custom_class;
@@ -2060,7 +2067,7 @@ class Forminator_CForm_Front extends Forminator_Render_Form {
 	 * @param array  $properties CSS properties.
 	 * @return string
 	 */
-	protected function get_css_prefix( $prefix, $properties ) {
+	protected static function get_css_prefix( $prefix, $properties, $slug ) {
 		if ( 'none' !== $properties['form-style'] ) {
 			$prefix .= '.forminator-design--' . $properties['form-style'] . ' ';
 		}
@@ -2580,6 +2587,8 @@ class Forminator_CForm_Front extends Forminator_Render_Form {
 		$options = array(
 			'form_type'           => $this->get_form_type(),
 			'inline_validation'   => filter_var( $form_properties['inline_validation'], FILTER_VALIDATE_BOOLEAN ),
+			'print_value'         => ! empty ( $form_properties['settings']['print_value'] )
+					? filter_var( $form_properties['settings']['print_value'], FILTER_VALIDATE_BOOLEAN ) : false,
 			'rules'               => $form_properties['validation_rules'],
 			// this is string, todo: refactor this to array (ALL FIELDS will be affected) to avoid client JSON.parse
 			'messages'            => $form_properties['validation_messages'],

@@ -144,8 +144,10 @@ class Forminator_Widget extends WP_Widget {
 			</label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'form_id' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'form_id' ) ); ?>">
 				<?php
-				$modules = forminator_form_modules( 999 );
+				$modules = Forminator_API::get_forms( null, 1, 999 );
 				foreach ( $modules as $module ) {
+					$module = (array) $module;
+
 					$title = forminator_get_form_name( $module['id'] );
 					if ( strlen( $title ) > 25 ) {
 						$title = substr( $title, 0, 25 ) . '...';
@@ -162,8 +164,10 @@ class Forminator_Widget extends WP_Widget {
 			</label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'poll_id' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'poll_id' ) ); ?>">
 				<?php
-				$modules = forminator_poll_modules( 999 );
+				$modules = Forminator_API::get_polls( null, 1, 999 );
 				foreach ( $modules as $module ) {
+					$module = (array) $module;
+
 					$title = forminator_get_form_name( $module['id'] );
 					if ( strlen( $title ) > 25 ) {
 						$title = substr( $title, 0, 25 ) . '...';
@@ -180,8 +184,10 @@ class Forminator_Widget extends WP_Widget {
 			</label>
 			<select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'quiz_id' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'quiz_id' ) ); ?>">
 				<?php
-				$modules = forminator_quiz_modules( 999 );
+				$modules = Forminator_API::get_quizzes( null, 1, 999 );
 				foreach ( $modules as $module ) {
+					$module = (array) $module;
+
 					$title = forminator_get_form_name( $module['id'] );
 					if ( strlen( $title ) > 25 ) {
 						$title = substr( $title, 0, 25 ) . '...';

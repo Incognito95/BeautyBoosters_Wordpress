@@ -95,9 +95,7 @@
             }
 
 			this.$el.find('.forminator-button.forminator-button-back, .forminator-button.forminator-button-next').click(function (e) {
-				e.preventDefault();
 				form.find('.forminator-field input:not([type="file"]), .forminator-row input[type=hidden], .forminator-field select, .forminator-field textarea').change();
-				$(this).trigger('forminator.front.pagination.move');
 			});
 			// Simulate change
 			this.$el.find('.forminator-field input, .forminator-row input[type=hidden], .forminator-field select, .forminator-field textarea').change();
@@ -692,13 +690,9 @@
 				$hidden_wp_editor = $column_field.find('.forminator-wp-editor-required'),
 				$row_field = $column_field.closest('.forminator-row'),
 				$pagination_next_field = this.$el.find('.forminator-pagination-footer').find('.forminator-button-next'),
-				$paypal_field = this.$el.find('.forminator-pagination-footer').find('#forminator-paypal-submit')
+				submit_selector = 'submit' === element_id ? '.forminator-button-submit' : '#forminator-paypal-submit',
+				$pagination_field = this.$el.find( submit_selector )
 				;
-			if( 'submit' === element_id ) {
-				var $pagination_field = this.$el.find('.forminator-pagination-footer').find('.forminator-button-submit');
-			} else {
-				var $pagination_field = this.$el.find('.forminator-pagination-footer').find('#forminator-paypal-submit');
-			}
 
 			// Handle show action
 			if (action === "show") {

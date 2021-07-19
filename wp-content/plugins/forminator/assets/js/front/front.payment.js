@@ -179,6 +179,17 @@
 			updateFormData.append( 'action', 'forminator_update_payment_amount' );
 			updateFormData.append( 'paymentid', this.getStripeData('paymentid') );
 			updateFormData.append( 'payment_method', this.getObjectValue(paymentMethod, 'id') );
+
+			var receipt = this.getStripeData('receipt');
+			var receiptEmail = this.getStripeData('receiptEmail');
+			var receiptObject = {};
+
+			if( receipt && receiptEmail ) {
+				var emailValue = this.get_field_value(receiptEmail) || '';
+
+				updateFormData.append( 'receipt_email', emailValue );
+			}
+
 			$.ajax({
 				type: 'POST',
 				url: window.ForminatorFront.ajaxUrl,
@@ -470,16 +481,6 @@
 
 			if (self._beforeSubmitCallback) {
 				self._beforeSubmitCallback.call();
-			}
-
-			var receipt = this.getStripeData('receipt');
-			var receiptEmail = this.getStripeData('receiptEmail');
-			var receiptObject = {};
-
-			if( receipt && receiptEmail ) {
-				receiptObject = {
-					receipt_email: this.get_field_value(receiptEmail) || ''
-				};
 			}
 		},
 

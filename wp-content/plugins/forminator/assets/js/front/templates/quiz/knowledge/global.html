@@ -23,7 +23,11 @@
 /* SECTION: Content */
 <?php include('global/content/questions-container.html') ?>
 <?php include('global/content/questions-legend.html') ?>
+<?php include('global/content/page-indicator.html') ?>
+<?php include('global/content/start-button.html') ?>
+<?php include('global/content/questions-description.html') ?>
 <?php include('global/content/questions-result.html') ?>
+<?php include('global/footer/retake-button.html') ?>
 <?php include('global/content/answers-text.html') ?>
 <?php if ( forminator_array_value_exists( $properties, 'forminator-quiz-theme' ) && 'none' != $properties['forminator-quiz-theme'] ) { ?>
 	<?php include self::get_template( $properties['forminator-quiz-theme'], 'answers-container.html'); ?>
@@ -34,6 +38,8 @@
 /* SECTION: Footer */
 <?php include('global/footer/quiz-footer.html') ?>
 <?php include('global/footer/submit-button.html') ?>
+<?php include('global/footer/navigation-button.html') ?>
+<?php include('global/footer/back-to-question.html') ?>
 <?php include('global/footer/summary.html') ?>
 <?php include('global/footer/social-share.html') ?>
 

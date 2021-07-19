@@ -13,11 +13,17 @@ class Forminator_API {
 
 	const MAX_CUSTOM_FORM_FIELDS_PER_WRAPPER = 4;
 
-	public static function initialize() {
+	public static function initialize( $admin_files = false ) {
 		// If models are not initialized, init the plugin
 		if ( ! class_exists( 'Forminator_Form_Model' ) ) {
 			/** @noinspection PhpUnusedLocalVariableInspection */
 			$forminator = forminator();
+		}
+		if ( $admin_files ) {
+			include_once dirname( dirname( __FILE__ ) ) . '/admin/abstracts/class-admin-module.php';
+			include_once dirname( __FILE__ ) . '/modules/custom-forms/admin/admin-loader.php';
+			include_once dirname( __FILE__ ) . '/modules/polls/admin/admin-loader.php';
+			include_once dirname( __FILE__ ) . '/modules/quizzes/admin/admin-loader.php';
 		}
 	}
 
@@ -56,7 +62,8 @@ class Forminator_API {
 
 			foreach ( $form_ids as $form_id ) {
 				$model = self::get_module( $form_id );
-				if ( ! empty( $status ) && ! $model instanceof WP_Error && $status === $model->status ) {
+				if ( ! empty( $status ) && ! $model instanceof WP_Error
+						&& ( is_array( $status ) && in_array( $model->status, $status, true ) || $status === $model->status ) ) {
 					$temp[] = $model;
 				}
 
@@ -126,30 +133,13 @@ class Forminator_API {
 	 * @since  1.14.11
 	 * @access public
 	 *
-	 * @param int $module_id ID of the form
-	 *
-	 * @return bool|WP_Error True when successfully deleted | WP Error
+	 * @param int $module_id Module id.
 	 */
 	public static function delete_module( $module_id ) {
 		// Initialize API
 		self::initialize();
 
-		$model = Forminator_Base_Form_Model::get_model( $module_id );
-		if ( is_object( $model ) ) {
-			// Delete form object
-			wp_delete_post( $module_id );
-
-			// Delete form entries
-			Forminator_Form_Entry_Model::delete_by_form( $module_id );
-
-			// Delete form views
-			$form_view = Forminator_Form_Views_Model::get_instance();
-			$form_view->delete_by_form( $module_id );
-
-			return true;
-		} else {
-			return new WP_Error( 'not_found', sprintf( __( 'Can not find a module with id: %s', 'forminator' ), $module_id ), $module_id );
-		}
+		Forminator_Admin_Module_Edit_Page::delete_module( $module_id );
 	}
 
 	/**
@@ -177,9 +167,6 @@ class Forminator_API {
 	 * @return bool|WP_Error True when successfully deleted | WP Error
 	 */
 	public static function delete_modules( $module_ids ) {
-		// Initialize API
-		self::initialize();
-
 		if ( ! is_array( $module_ids ) ) {
 			$module_ids = func_get_args();
 		}
@@ -213,52 +200,17 @@ class Forminator_API {
 	 */
 	public static function add_form( $name, $wrappers = array(), $settings = array(), $status = Forminator_Form_Model::STATUS_PUBLISH ) {
 		// Initialize API
-		self::initialize();
+		self::initialize( true );
 
 		if ( empty( $name ) ) {
 			return new WP_Error( 'missing_name', __( 'Form name is required!', 'forminator' ) );
 		}
 
-		// Create new form model
-		$model = new Forminator_Form_Model();
+		$template           = new stdClass();
+		$template->fields   = $wrappers;
+		$template->settings = $settings;
 
-		// Set the post data
-		$settings['formName'] = $name;
-		$settings['version']  = FORMINATOR_VERSION;
-		$model->name          = $name;
-
-		if ( is_array( $settings ) ) {
-			// Bind form settings
-			$model->settings = $settings;
-		}
-
-		// Add fields to the form
-		if ( is_array( $wrappers ) ) {
-			// Loop wrappers
-			foreach ( $wrappers as $wrapper_data ) {
-				// Loop fields
-				foreach ( $wrapper_data['fields'] as $field_data ) {
-					// Create new field model
-					$field          = new Forminator_Form_Field_Model();
-					$field->form_id = $wrapper_data['wrapper_id'];
-					$field->slug    = $field_data['element_id'];
-
-					// Unset field ID
-					unset( $field_data['element_id'] );
-
-					// Import field data to model
-					$field->import( $field_data );
-
-					// Add field to the form
-					$model->add_field( $field );
-				}
-			}
-		}
-
-
-		$model->status = $status;
-		// Save the form
-		$id = $model->save();
+		$id = Forminator_Custom_Form_Admin::create( $name, $status, $template );
 
 		if ( false === $id ) {
 			return new WP_Error( 'form_save_error', __( 'There was a problem saving the form', 'forminator' ) );
@@ -278,65 +230,30 @@ class Forminator_API {
 	 * @param array  $wrappers Array with form fields
 	 * @param array  $settings Array with form settings
 	 * @param string $status   status of form `draft`| `publish` | `` for keep as it is
+	 * @param array  $notifications Array with form notifications
 	 *
 	 * @return int|WP_Error id of updated form, or WP_Error on failure
 	 */
-	public static function update_form( $id, $wrappers = array(), $settings = array(), $status = '' ) {
+	public static function update_form( $id, $wrappers = array(), $settings = array(), $status = '', $notifications = array() ) {
 		// Initialize API
-		self::initialize();
+		self::initialize( true );
 
 		if ( empty( $id ) ) {
 			return new WP_Error( 'missing_id', __( 'Form ID is required!', 'forminator' ) );
 		}
 
-		// Create new form model
-		$model = Forminator_Form_Model::model()->load( $id );
-
-		if ( ! is_object( $model ) ) {
-			return new WP_Error( 'missing_object', __( "Form model doesn't exist", 'forminator' ) );
-		}
-
-
 		// Set the post data
-		$model->name = $settings['formName'];
+		$title    = $settings['formName'];
+		$template = new stdClass();
 
-		if ( is_array( $settings ) ) {
-			// Bind form settings
-			$model->settings = $settings;
+		$template->settings = $settings;
+		$template->fields   = $wrappers;
+
+		if ( isset( $notifications ) ) {
+			$template->notifications = $notifications;
 		}
 
-		// Add fields to the form
-		if ( is_array( $wrappers ) ) {
-			//we need to empty fields cause we will send new data
-			$model->clear_fields();
-
-			// Loop wrappers
-			foreach ( $wrappers as $wrapper_data ) {
-				// Loop fields
-				foreach ( $wrapper_data['fields'] as $field_data ) {
-					// Create new field model
-					$field          = new Forminator_Form_Field_Model();
-					$field->form_id = $wrapper_data['wrapper_id'];
-					$field->slug    = $field_data['element_id'];
-
-					// Unset field ID
-					unset( $field_data['element_id'] );
-
-					// Import field data to model
-					$field->import( $field_data );
-
-					// Add field to the form
-					$model->add_field( $field );
-				}
-			}
-		}
-
-		if ( ! empty( $status ) ) {
-			$model->status = $status;
-		}
-
-		// Save the form
-		$id = $model->save();
+		$id = Forminator_Custom_Form_Admin::update( $id, $title, $status, $template );
 
 		if ( false === $id ) {
 			return new WP_Error( 'form_save_error', __( 'There was a problem updating the form', 'forminator' ) );
@@ -1242,44 +1159,17 @@ class Forminator_API {
 	 */
 	public static function add_poll( $name, $fields = array(), $settings = array(), $status = Forminator_Poll_Model::STATUS_PUBLISH ) {
 		// Initialize API
-		self::initialize();
+		self::initialize( true );
 
 		if ( empty( $name ) ) {
 			return new WP_Error( 'missing_name', __( 'Poll name is required!', 'forminator' ) );
 		}
 
-		// Create new form model
-		$model = new Forminator_Poll_Model();
+		$template           = new stdClass();
+		$template->fields   = $fields;
+		$template->settings = $settings;
 
-		// Set the post data
-		$settings['formName'] = $name;
-		$settings['version']  = FORMINATOR_VERSION;
-		$model->name          = $name;
-
-		if ( is_array( $settings ) ) {
-			// Bind form settings
-			$model->settings = $settings;
-		}
-
-		// Add fields to the poll
-		if ( is_array( $fields ) ) {
-			foreach ( $fields as $field_data ) {
-				// Create new field model
-				$field            = new Forminator_Form_Field_Model();
-				$field_data['id'] = $field_data['element_id'];
-
-				// Import field data to model
-				$field->import( $field_data );
-				$field->slug = $field_data['element_id'];
-
-				// Add field to the form
-				$model->add_field( $field );
-			}
-		}
-
-		$model->status = $status;
-		// Save the form
-		$id = $model->save();
+		$id = Forminator_Poll_Admin::create( $name, $status, $template );
 
 		if ( false === $id ) {
 			return new WP_Error( 'form_save_error', __( 'There was a problem saving the poll', 'forminator' ) );
@@ -1303,52 +1193,19 @@ class Forminator_API {
 	 */
 	public static function update_poll( $id, $fields = array(), $settings = array(), $status = '' ) {
 		// Initialize API
-		self::initialize();
+		self::initialize( true );
 
 		if ( empty( $id ) ) {
 			return new WP_Error( 'missing_id', __( 'Poll ID is required!', 'forminator' ) );
 		}
 
-		// Create new form model
-		$model = Forminator_Poll_Model::model()->load( $id );
-		if ( ! is_object( $model ) ) {
-			return new WP_Error( 'missing_object', __( "Poll model doesn't exist", 'forminator' ) );
-		}
-
 		// Set the post data
-		$model->name = $settings['formName'];
+		$title              = $settings['formName'];
+		$template           = new stdClass();
+		$template->settings = $settings;
+		$template->answers  = $fields;
 
-		if ( is_array( $settings ) ) {
-			// Bind form settings
-			$model->settings = $settings;
-		}
-
-		// Add fields to the poll
-		if ( is_array( $fields ) ) {
-			// Clear existing fields
-			$model->clear_fields();
-
-			foreach ( $fields as $field_data ) {
-				// Create new field model
-				$field            = new Forminator_Form_Field_Model();
-				$field_data['id'] = $field_data['element_id'];
-
-				// Import field data to model
-				$field->import( $field_data );
-				$field->slug = $field_data['element_id'];
-
-				// Add field to the form
-				$model->add_field( $field );
-			}
-		}
-
-		if ( ! empty( $status ) ) {
-			$model->status = $status;
-		}
-
-		// Save the form
-		$id = $model->save();
-
+		$id = Forminator_Poll_Admin::update( $id, $title, $status, $template );
 		if ( false === $id ) {
 			return new WP_Error( 'form_save_error', __( 'There was a problem saving the poll', 'forminator' ) );
 		}
@@ -1456,12 +1313,13 @@ class Forminator_API {
 	 * @param array  $results   Array with quiz results
 	 * @param array  $settings  Array with settings
 	 * @param string $status    Status of newly created quiz : draft/publish, default publish
+	 * @param bool   $has_leads Is this quiz has Leads or not, default false
 	 *
 	 * @return int|WP_Error ID of new Quiz, or WP_Error otherwise
 	 */
-	public static function add_quiz( $name, $type, $questions = array(), $results = array(), $settings = array(), $status = null ) {
+	public static function add_quiz( $name, $type, $questions = array(), $results = array(), $settings = array(), $status = null, $has_leads = false ) {
 		// Initialize API
-		self::initialize();
+		self::initialize( true );
 
 		if ( empty( $name ) ) {
 			return new WP_Error( 'missing_name', __( 'Quiz name is required!', 'forminator' ) );
@@ -1471,38 +1329,18 @@ class Forminator_API {
 			return new WP_Error( 'missing_type', __( 'Quiz type is required!', 'forminator' ) );
 		}
 
+		$template            = new stdClass();
+		$template->settings  = $settings;
+		$template->questions = $questions;
+		$template->results   = $results;
+		$template->quiz_type = $type;
+		$template->has_leads = $has_leads;
 
-		// Create new form model
-		$model = new Forminator_Quiz_Model();
-
-		// Set the post data
-		$settings['formName'] = $name;
-		$model->name          = $name;
-
-		// Set the type
-		$model->quiz_type = $type;
-
-		if ( is_array( $settings ) ) {
-			// Bind form settings
-			$model->settings = $settings;
+		if ( ! $status ) {
+			$status = Forminator_Quiz_Model::STATUS_PUBLISH;
 		}
 
-		// Bind questions
-		if ( ! empty( $questions ) ) {
-			$model->questions = $questions;
-		}
-
-		// Bind results
-		if ( ! empty( $results ) ) {
-			$model->results = $results;
-		}
-
-		if ( $status ) {
-			$model->status = $status;
-		}
-
-		// Save the form
-		$id = $model->save();
+		$id = Forminator_Quiz_Admin::create( $name, $status, $template );
 
 		if ( false === $id ) {
 			return new WP_Error( 'quiz_save_error', __( 'There was a problem saving the quiz', 'forminator' ) );
@@ -1528,48 +1366,30 @@ class Forminator_API {
 	 */
 	public static function update_quiz( $id, $questions = array(), $results = array(), $settings = array(), $status = null ) {
 		// Initialize API
-		self::initialize();
+		self::initialize( true );
 
 		if ( empty( $id ) ) {
 			return new WP_Error( 'missing_id', __( 'Quiz ID is required!', 'forminator' ) );
 		}
 
-		// Create new form model
-		/** @var Forminator_Quiz_Model $model */
-		$model = Forminator_Quiz_Model::model()->load( $id );
-		if ( ! is_object( $model ) ) {
-			return new WP_Error( 'missing_object', __( "Quiz model doesn't exist", 'forminator' ) );
-		}
-
 		// Set the post data
-		$model->name = $settings['formName'];
+		$title    = $settings['formName'];
+		$template = new stdClass();
 
 
-		if ( is_array( $settings ) ) {
-			// Bind form settings
-			$model->settings = $settings;
-		}
+		$template->settings = $settings;
 
 		// Bind questions
 		if ( ! empty( $questions ) ) {
-			// Clear fields
-			$model->clear_fields();
-
-			$model->questions = $questions;
+			$template->questions = $questions;
 		}
 
 		// Bind results
 		if ( ! empty( $results ) ) {
-			$model->results = $results;
+			$template->results = $results;
 		}
 
-		if ( $status ) {
-			$model->status = $status;
-		}
-
-		// Save the form
-		$id = $model->save();
-
+		$id = Forminator_Quiz_Admin::update( $id, $title, $status, $template );
 		if ( false === $id ) {
 			return new WP_Error( 'quiz_save_error', __( 'There was a problem saving the quiz', 'forminator' ) );
 		}

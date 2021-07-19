@@ -276,33 +276,8 @@ abstract class Forminator_User {
 		}
 
 		foreach ( $message_settings as $form_key ) {
-			if ( isset( $settings[ $form_key ] ) && ! empty( $settings[ $form_key ] ) ) {
-				$allowed_html = array(
-					'a'      => array(
-						'href'   => true,
-						'title'  => true,
-						'target' => true,
-					),
-					'br'     => array(),
-					'em'     => array(),
-					'strong' => array(),
-					'p'      => array(
-						'style' => true,
-					),
-					'ul'     => array(),
-					'ol'     => array(),
-					'li'     => array(),
-				);
-
-				/**
-				 * Filter that allows changing the allowed html tags in seetings fields.
-				 *
-				 * @var $allowed_html aray
-				 * @since 1.14.1
-				 */
-				$allowed_html = apply_filters( 'forminator_change_form_allowed_html', $allowed_html );
-
-				$sanitized_settings[ $form_key ] = wp_kses( $settings[ $form_key ], $allowed_html );
+			if ( ! empty( $settings[ $form_key ] ) ) {
+				$sanitized_settings[ $form_key ] = wp_kses_post( $settings[ $form_key ] );
 			}
 		}
 

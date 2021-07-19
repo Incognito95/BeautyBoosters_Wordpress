@@ -22,7 +22,8 @@ if ( 0 === $num_recent ) {
 	return;
 }
 
-$modules = call_user_func( 'forminator_' . $module_slug . '_modules', $num_recent, $statuses );
+$method  = 'get_' . forminator_get_prefix( $module_slug, '', false, true );
+$modules = Forminator_API::$method( null, 1,  $num_recent, $statuses );
 ?>
 
 <div class="sui-box">
@@ -69,6 +70,8 @@ $modules = call_user_func( 'forminator_' . $module_slug . '_modules', $num_recen
 
 				<?php
 					foreach ( $modules as $index => $module ) {
+						$module = (array) $module;
+						$module['name'] = forminator_get_form_name( $module['id'] );
 						$page = ceil( ( $index + 1 ) / $_per_page );
 				?>
 
@@ -114,7 +117,7 @@ $modules = call_user_func( 'forminator_' . $module_slug . '_modules', $num_recen
 
 								<ul>
 									<li>
-										<?php $wizard_page_prefix = 'quiz' !== $module_type ? $module_type : ( 'nowrong' === $module['type'] ? $module['type'] : 'knowledge' ); ?>
+										<?php $wizard_page_prefix = 'quiz' !== $module_type ? $module_type : ( 'nowrong' === $module['quiz_type'] ? $module['quiz_type'] : 'knowledge' ); ?>
 										<a href="<?php echo esc_url( admin_url( 'admin.php?page=forminator-' . $wizard_page_prefix . '-wizard&id=' . $module['id'] ) ); ?>">
 											<i class="sui-icon-pencil" aria-hidden="true"></i> <?php esc_html_e( 'Edit', 'forminator' ); ?>
 										</a>

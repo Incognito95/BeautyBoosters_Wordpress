@@ -615,6 +615,19 @@ abstract class Forminator_Render_Form {
 	}
 
 	/**
+	 * Start button text
+	 *
+	 * @param array $settings Module settings.
+	 * @return string
+	 */
+	public function get_start_button_text( $settings = null ) {
+		if ( is_null( $settings ) ) {
+			$settings = $this->model->settings;
+		}
+		return ! empty( $settings['text-start'] ) ? $settings['text-start'] : __( 'Start Quiz', 'forminator' );
+	}
+
+	/**
 	 * Return Form ID required message
 	 *
 	 * @since 1.0
@@ -754,8 +767,8 @@ abstract class Forminator_Render_Form {
 	protected static function get_custom_css( $properties ) {
 		$slug   = forminator_get_prefix( static::$module_slug, 'custom-' );
 		$prefix = '.forminator-ui.forminator-' . $slug . '-' . $properties['form_id'];
-		if ( method_exists( __CLASS__, 'get_css_prefix' ) ) {
-			$prefix = static::get_css_prefix( $prefix );
+		if ( method_exists( static::class, 'get_css_prefix' ) ) {
+			$prefix = static::get_css_prefix( $prefix, $properties, $slug );
 		}
 
 		$custom_css = forminator_prepare_css(

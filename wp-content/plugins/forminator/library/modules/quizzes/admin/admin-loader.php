@@ -254,6 +254,45 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 	}
 
 	/**
+	 * Common quiz default data
+	 *
+	 * @return array
+	 */
+	private static function common_default_data() {
+		return array(
+			// Pagination.
+			'page-indicator-color'                        => '#888888',
+			'start-button-background-static'              => '#17A8E3',
+			'start-button-background-hover'               => '#008FCA',
+			'start-button-background-active'              => '#008FCA',
+			'start-button-color-static'                   => '#FFFFFF',
+			'start-button-color-hover'                    => '#FFFFFF',
+			'start-button-color-active'                   => '#FFFFFF',
+			'start-button-font-family'                    => 'Roboto',
+			'start-button-font-size'                      => '14',
+			'start-button-font-weight'                    => '500',
+			'navigation-button-background-static'         => '#1ABCA1',
+			'navigation-button-background-hover'          => '#159C85',
+			'navigation-button-background-active'         => '#159C85',
+			'navigation-button-color-static'              => '#FFFFFF',
+			'navigation-button-color-hover'               => '#FFFFFF',
+			'navigation-button-color-active'              => '#FFFFFF',
+			'navigation-button-font-family'               => 'Roboto',
+			'navigation-button-font-size'                 => '14',
+			'navigation-button-font-weight'               => '500',
+			'back-questions-button-background-static'     => '#1ABCA1',
+			'back-questions-button-background-hover'      => '#159C85',
+			'back-questions-button-background-active'     => '#159C85',
+			'back-questions-button-color-static'          => '#FFFFFF',
+			'back-questions-button-color-hover'           => '#FFFFFF',
+			'back-questions-button-color-active'          => '#FFFFFF',
+			'page-indicator-font-family'                  => 'Roboto',
+			'page-indicator-font-size'                    => '13',
+			'page-indicator-font-weight'                  => '400',
+		);
+	}
+
+	/**
 	 * Knowledge quiz default data
 	 *
 	 * @since 1.14
@@ -261,9 +300,10 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 	 * @return array
 	 */
 	public static function knowledge_default_data( $name, $has_leads ) {
-		return array(
+		return array_merge( self::common_default_data(), array(
 			'hasLeads'					 => $has_leads,
 			'formName'               => $name,
+			'version'                => FORMINATOR_VERSION,
 			'admin-email-recipients' => array(
 				get_option( 'admin_email' ),
 			),
@@ -292,7 +332,11 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 			'knowledge-question-color' =>                    '#333333',
 			'knowledge-question-font-family' =>              'Roboto',
 			'knowledge-question-font-size' =>                '24',
-			'knowledge-question-font-weight' =>              '500',
+			'knowledge-question-font-weight' =>              '700',
+			'knowledge-question-description-color'        => '#8C8C8C',
+			'question-description-font-family'            => 'Roboto',
+			'question-description-font-size'              => '20',
+			'question-description-font-weight'            => '400',
 			// KNOWLEDGE answer
 			'knowledge-answer-background-static' =>          '#FAFAFA',
 			'knowledge-answer-background-hover' =>           '#F3FBFE',
@@ -338,6 +382,12 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 			'knowledge-summary-font-family' =>               'Roboto',
 			'knowledge-summary-font-size' =>                 '40',
 			'knowledge-summary-font-weight' =>               '400',
+			'knowledge-result-retake-font-family' =>           'Roboto',
+			'knowledge-result-retake-font-size' =>             '13',
+			'knowledge-result-retake-font-weight' =>           '500',
+			'knowledge-result-retake-background-static' =>     '#222222',
+			'knowledge-result-retake-background-hover' =>      '#222222',
+			'knowledge-result-retake-background-active' =>     '#222222',
 			// KNOWLEDGE social
 			'enable-share' =>                                'on',
 			'knowledge-sshare-color' =>                      '#4D4D4D',
@@ -348,7 +398,7 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 			'knowledge-social-google' =>                     '#DB4437',
 			'forminator-knowledge-social-linkedin' =>        '#0084BF',
 			'knowledge-social-size' =>                       '36'
-		);
+		) );
 	}
 
 	/**
@@ -359,9 +409,10 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 	 * @return array
 	 */
 	public static function nowrong_default_data( $name, $has_leads ) {
-		return array(
+		return array_merge( self::common_default_data(), array(
 			'hasLeads'					 => $has_leads,
 			'formName'               => $name,
+			'version'                => FORMINATOR_VERSION,
 			'admin-email-recipients' => array(
 				get_option( 'admin_email' ),
 			),
@@ -392,7 +443,11 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 			'nowrong-question-settings' =>                   false,
 			'nowrong-question-font-size' =>                  '24',
 			'nowrong-question-font-family' =>                'Roboto',
-			'nowrong-question-font-weight' =>                '500',
+			'nowrong-question-font-weight' =>                '700',
+			'nowrong-question-description-color'      => '#8C8C8C',
+			'question-description-font-family'        => 'Roboto',
+			'question-description-font-size'          => '20',
+			'question-description-font-weight'        => '400',
 			// NOWRONG answer
 			'nowrong-answer-settings' =>                     false,
 			'nowrong-answer-border-static' =>                '#EBEDEB',
@@ -422,16 +477,16 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 			'nowrong-result-background-main' =>              '#FAFAFA',
 			'nowrong-result-background-header' =>            '#FAFAFA',
 			'nowrong-result-border-color' =>                 '#17A8E3',
-			'nowrong-result-quiz-color' =>                   '#FFFFFF',
+			'nowrong-result-quiz-color' =>                   '#888888',
 			'nowrong-result-quiz-font-family' =>             'Roboto',
 			'nowrong-result-quiz-font-size' =>               '15',
 			'nowrong-result-quiz-font-weight' =>             '500',
 			'nowrong-result-retake-font-family' =>           'Roboto',
 			'nowrong-result-retake-font-size' =>             '13',
 			'nowrong-result-retake-font-weight' =>           '500',
-			'nowrong-result-retake-background-static' =>     '#17A8E3',
-			'nowrong-result-retake-background-hover' =>      '#17A8E3',
-			'nowrong-result-retake-background-active' =>     '#17A8E3',
+			'nowrong-result-retake-background-static' =>     '#222222',
+			'nowrong-result-retake-background-hover' =>      '#222222',
+			'nowrong-result-retake-background-active' =>     '#222222',
 			'nowrong-result-background-body' =>              '#EBEDEB',
 			'nowrong-result-title-color' =>                  '#333333',
 			'nowrong-result-title-font-family' =>            'Roboto',
@@ -443,7 +498,7 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 			'nowrong-result-description-font-weight' =>      '400',
 			// NOWRONG social
 			'enable-share' =>                                'on',
-		);
+		) );
 	}
 
 	/**
@@ -623,97 +678,236 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 	 * @return no return
 	 */
 	public function create_module() {
-		$model = null;
+		if ( ! $this->is_knowledge_wizard() && ! $this->is_nowrong_wizard() || self::is_edit() ) {
+			return;
+		}
 
-		if ( $this->is_knowledge_wizard() || $this->is_nowrong_wizard() ) {
+		// Get module name
+		$name = '';
+		if ( isset( $_GET['name'] ) ) { // WPCS: CSRF ok.
+			$name = sanitize_text_field( $_GET['name'] );
+		}
 
-			if ( ! self::is_edit() ) {
+		// Get if quiz has leads
+		$has_leads = false;
+		if ( isset( $_GET['leads'] ) ) {
+			$has_leads = sanitize_text_field( $_GET['leads'] );
+		}
 
-				$model = new Forminator_Quiz_Model();
+		if ( $this->is_knowledge_wizard() ) {
+			$quiz_type = 'knowledge';
+		} else {
+			$quiz_type = 'nowrong';
+		}
 
-				// Get module name
-				$name = '';
-				if ( isset( $_GET['name'] ) ) { // WPCS: CSRF ok.
-					$name = sanitize_text_field( $_GET['name'] );
+		$status = Forminator_Quiz_Model::STATUS_DRAFT;
+
+		$template            = new stdClass();
+		$template->quiz_type = $quiz_type;
+		$template->has_leads = $has_leads;
+
+		$pagination = filter_input( INPUT_GET, 'pagination' );
+		if ( ! empty( $pagination ) ) {
+			$template->has_pagination = true;
+		}
+
+		$id = self::create( $name, $status, $template );
+
+		$wizard_url = admin_url( 'admin.php?page=forminator-' . $quiz_type . '-wizard&id=' . $id );
+
+		wp_safe_redirect( $wizard_url );
+	}
+
+	/**
+	 * Create quiz
+	 *
+	 * @param string $name Name.
+	 * @param string $status Status.
+	 * @param object $template Template.
+	 * @return int post ID
+	 */
+	public static function create( $name, $status, $template ) {
+		$has_leads = ! empty( $template->has_leads );
+		$quiz_type = ! empty( $template->quiz_type ) ? $template->quiz_type : '';
+		// If we have leads, create leads form automatically.
+		if ( $has_leads ) {
+			$leads_id = self::create_leads_form( $name );
+		}
+
+		if ( 'knowledge' === $quiz_type ) {
+			$settings = self::knowledge_default_data( $name, $has_leads );
+		} else {
+			$settings = self::nowrong_default_data( $name, $has_leads );
+		}
+
+		if ( $has_leads && ! empty( $leads_id ) ) {
+			$settings['leadsId'] = $leads_id;
+		}
+
+		$model            = new Forminator_Quiz_Model();
+		$model->quiz_type = $quiz_type;
+		$model->results   = ! empty( $template->results )
+			? $template->results : array();
+		$model->questions = ! empty( $template->questions )
+			? $template->questions : array();
+		$model->name      = $name;
+		$model->status    = $status;
+
+		if ( ! empty( $template->settings ) ) {
+			$settings = array_merge( $settings, $template->settings );
+		}
+		if ( ! empty( $template->has_pagination ) ) {
+			$settings['pagination'] = 'true';
+		}
+		$model->settings = self::validate_settings( $settings );
+
+		if ( $has_leads ) {
+			if ( 'knowledge' === $quiz_type ) {
+				$email_body = __( 'Hey {name-1},<br/><br/>Thanks for participating in {quiz_name} quiz.<br/><br/><b>{quiz_name}</b><br/>{quiz_answer}<br/><br/>Want to retake the quiz? Follow this link {embed_url}<br/><br/>---<br/><br/>This message was sent from {site_url}.', 'forminator' );
+			} else {
+				$email_body = __( 'Hey {name-1},<br/><br/>Thanks for participating in our {quiz_name} quiz.<br/><br/>Your scored {quiz_result} on this quiz and following are your answers:<br/>{quiz_answer}<br/><br/>Want to retake the quiz? Follow this link {embed_url}<br/><br/>---<br/><br/>This message was sent from {site_url}.', 'forminator' );
+			}
+			$model->notifications = array(
+				array(
+					'slug'             => 'notification-1234-4567',
+					'label'            => 'Admin Notification',
+					'email-recipients' => 'default',
+					'recipients'       => get_option( 'admin_email' ),
+					'email-subject'    => __( 'New Quiz Submission #{submission_id} for {quiz_name}', 'forminator' ),
+					'email-editor'     => __( 'You have a new {quiz_type} quiz submission: <br/><br/>Lead details:<br/>{all_fields}<br/><br/>---<br/><br/>Quiz details: <br/>{quiz_result} <br/>{quiz_answer}<br/><br/>This message was sent from {site_url}.', 'forminator' ),
+				),
+				array(
+					'slug'             => 'notification-4567-8765',
+					'label'            => 'Participant\'s Notification',
+					'email-recipients' => 'default',
+					'recipients'       => '{email-1}',
+					'email-subject'    => __( 'Your quiz result', 'forminator' ),
+					'email-editor'     => $email_body,
+				),
+			);
+		}
+
+		// Save data.
+		$id = $model->save();
+
+		return $id;
+	}
+
+	/**
+	 * Update quiz
+	 *
+	 * @param string $id Module ID.
+	 * @param string $title Name.
+	 * @param string $status Status.
+	 * @param object $template Template.
+	 * @return int post ID
+	 */
+	public static function update( $id, $title, $status, $template ) {
+		if ( is_null( $id ) || $id <= 0 ) {
+			$form_model = new Forminator_Quiz_Model();
+			$action     = 'create';
+
+			if ( empty( $status ) ) {
+				$status = Forminator_Poll_Model::STATUS_PUBLISH;
+			}
+		} else {
+			$form_model = Forminator_Quiz_Model::model()->load( $id );
+			$action     = 'update';
+
+			if ( ! is_object( $form_model ) ) {
+				return new WP_Error( __( "Quiz model doesn't exist", 'forminator' ) );
+			}
+
+			if ( empty( $status ) ) {
+				$status = $form_model->status;
+			}
+
+			// we need to empty fields cause we will send new data.
+			$form_model->clear_fields();
+		}
+
+		// Detect action.
+		$form_model->quiz_type = 'knowledge';
+		if ( ! empty( $template->type ) && 'forminator_save_quiz_nowrong' === $template->type ) {
+			$form_model->quiz_type = 'nowrong';
+		}
+
+		$results = array();
+		// Check if results exist.
+		if ( isset( $template->results ) && is_array( $template->results ) ) {
+			$results = $template->results;
+			foreach ( $template->results as $key => $result ) {
+				$description = '';
+				if ( isset( $result['description'] ) ) {
+					$description = $result['description'];
 				}
+				$results[ $key ]['description'] = $description;
+			}
 
-				// Get if quiz has leads
-				$has_leads = false;
-				if ( isset( $_GET['leads'] ) ) {
-					$has_leads = sanitize_text_field( $_GET['leads'] );
+			$form_model->results = $results;
+		}
+
+		$questions = array();
+		// Check if answers exist.
+		if ( isset( $template->questions ) ) {
+			$questions = forminator_sanitize_field( $template->questions );
+
+			// Check if questions exist.
+			foreach ( $questions as &$question ) {
+				$question['type'] = $form_model->quiz_type;
+				if ( ! isset( $question['slug'] ) || empty( $question['slug'] ) ) {
+					$question['slug'] = uniqid();
 				}
-
-				// If we have leads, create leads form automatically
-				if ( $has_leads ) {
-					$leads_id = $this->create_leads_form( $name );
-				}
-
-				if ( $this->is_knowledge_wizard() ) {
-					$model->quiz_type = 'knowledge';
-					$settings         = self::knowledge_default_data( $name, $has_leads );
-				}
-
-				if ( $this->is_nowrong_wizard() ) {
-					$model->quiz_type = 'nowrong';
-					$settings         = self::nowrong_default_data( $name, $has_leads );
-				}
-
-				if ( $has_leads && ! empty( $leads_id ) ) {
-					$settings['leadsId'] = $leads_id;
-				}
-
-				$model->results       = array();
-				$model->questions     = array();
-				$model->name          = $name;
-
-				if ( $has_leads ) {
-					if ( $this->is_knowledge_wizard() ) {
-						$email_body = __( 'Hey {name-1},<br/><br/>Thanks for participating in {quiz_name} quiz.<br/><br/><b>{quiz_name}</b><br/>{quiz_answer}<br/><br/>Want to retake the quiz? Follow this link {embed_url}<br/><br/>---<br/><br/>This message was sent from {site_url}.', 'forminator' );
-					} else {
-						$email_body = __( 'Hey {name-1},<br/><br/>Thanks for participating in our {quiz_name} quiz.<br/><br/>Your scored {quiz_result} on this quiz and following are your answers:<br/>{quiz_answer}<br/><br/>Want to retake the quiz? Follow this link {embed_url}<br/><br/>---<br/><br/>This message was sent from {site_url}.', 'forminator' );
-					}
-					$model->notifications = array(
-						array(
-							'slug'             => 'notification-1234-4567',
-							'label'            => 'Admin Notification',
-							'email-recipients' => 'default',
-							'recipients'       => get_option( 'admin_email' ),
-							'email-subject'    => __( 'New Quiz Submission #{submission_id} for {quiz_name}', 'forminator' ),
-							'email-editor'     => __( 'You have a new {quiz_type} quiz submission: <br/><br/>Lead details:<br/>{all_fields}<br/><br/>---<br/><br/>Quiz details: <br/>{quiz_result} <br/>{quiz_answer}<br/><br/>This message was sent from {site_url}.', 'forminator' ),
-						),
-						array(
-							'slug'             => 'notification-4567-8765',
-							'label'            => 'Participant\'s Notification',
-							'email-recipients' => 'default',
-							'recipients'       => '{email-1}',
-							'email-subject'    => __( 'Your quiz result', 'forminator' ),
-							'email-editor'     => $email_body,
-						)
-					);
-				}
-
-				$settings['formName'] = $name;
-				$settings['version']  = FORMINATOR_VERSION;
-
-				$model->settings = $settings;
-
-				// status
-				$model->status = Forminator_Quiz_Model::STATUS_DRAFT;
-
-				// Save data
-				$id = $model->save();
-
-				if ( $this->is_knowledge_wizard() ) {
-					$wizard_url = admin_url( 'admin.php?page=forminator-knowledge-wizard&id=' . $id );
-				}
-
-				if ( $this->is_nowrong_wizard() ) {
-					$wizard_url = admin_url( 'admin.php?page=forminator-nowrong-wizard&id=' . $id );
-				}
-
-				wp_safe_redirect( $wizard_url );
 			}
 		}
+
+		$form_model->name = sanitize_title( $title );
+
+		// Handle quiz questions.
+		$form_model->questions = $questions;
+
+		$settings = isset( $template->settings ) ? $template->settings : array();
+
+		$notifications = array();
+		if ( isset( $template->notifications ) ) {
+			$notifications = forminator_sanitize_field( $template->notifications );
+
+			$count = 0;
+			foreach ( $notifications as $notification ) {
+				if ( isset( $notification['email-editor'] ) ) {
+					$notifications[ $count ]['email-editor'] = $template->notifications[ $count ]['email-editor'];
+				}
+
+				$count++;
+			}
+		}
+
+		$form_model->settings      = self::validate_settings( $settings );
+		$form_model->notifications = $notifications;
+		$form_model->status        = $status;
+
+		// Save data.
+		$id = $form_model->save();
+
+		$type = $form_model->quiz_type;
+
+		/**
+		 * Action called after quiz saved to database
+		 *
+		 * @since 1.11
+		 *
+		 * @param int    $id - quiz id
+		 * @param string $type - quiz type
+		 * @param string $status - quiz status
+		 * @param array  $questions - quiz questions
+		 * @param array  $results - quiz results
+		 *
+		 */
+		do_action( 'forminator_quiz_action_' . $action, $id, $type, $status, $questions, $results );
+
+		Forminator_Render_Form::regenerate_css_file( $id );
+
+		return $id;
 	}
 
 	/**
@@ -725,7 +919,7 @@ class Forminator_Quiz_Admin extends Forminator_Admin_Module {
 	 *
 	 * @return mixed
 	 */
-	public function create_leads_form( $name ) {
+	public static function create_leads_form( $name ) {
 		$model = new Forminator_Form_Model();
 
 		$name = $name . __( ' - Leads form', 'forminator' );

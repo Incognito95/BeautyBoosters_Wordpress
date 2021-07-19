@@ -476,9 +476,10 @@ class Forminator_Shortcode_Generator {
 
 			$html .= '<option value="">' . __( 'Select Custom Form', 'forminator' ) . '</option>';
 
-			$modules = forminator_form_modules( 999 );
+			$modules = Forminator_API::get_forms( null, 1, 999 );
 
 			foreach( $modules as $module ) {
+				$module = (array) $module;
 
 				$title = forminator_get_form_name( $module['id'] );
 
@@ -509,9 +510,10 @@ class Forminator_Shortcode_Generator {
 
 			$html .= '<option value="">' . __( "Select Poll", 'forminator' ) . '</option>';
 
-			$modules = forminator_poll_modules( 999 );
+			$modules = Forminator_API::get_polls( null, 1, 999 );
 
 			foreach( $modules as $module ) {
+				$module = (array) $module;
 
 				$title = forminator_get_form_name( $module['id'] );
 
@@ -542,9 +544,10 @@ class Forminator_Shortcode_Generator {
 
 			$html .= '<option value="">' . __( "Select Quiz", 'forminator' ) . '</option>';
 
-			$modules = forminator_quiz_modules( 999 );
+			$modules = Forminator_API::get_quizzes( null, 1, 999 );
 
 			foreach( $modules as $module ) {
+				$module = (array) $module;
 
 				$title = forminator_get_form_name( $module['id'] );
 

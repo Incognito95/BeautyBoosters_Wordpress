@@ -1,13 +1,6 @@
 <?php
-$banner_1x = forminator_plugin_url() . 'assets/images/graphic-upgradetour-feature.png';
-$banner_2x = forminator_plugin_url() . 'assets/images/graphic-upgradetour-feature@2x.png';
-
-/*
-if ( ! FORMINATOR_PRO ) {
-	$banner_1x = forminator_plugin_url() . 'assets/images/graphic-upgradetour-feature.png';
-	$banner_2x = forminator_plugin_url() . 'assets/images/graphic-upgradetour-feature@2x.png';
-}
-*/
+$banner_1x = forminator_plugin_url() . 'assets/images/graphic-bulk-mode.png';
+$banner_2x = forminator_plugin_url() . 'assets/images/graphic-bulk-mode@2x.png';
 ?>
 
 <div
@@ -23,7 +16,7 @@ if ( ! FORMINATOR_PRO ) {
 		role="dialog"
 	>
 
-		<div class="sui-slider forminator-feature-modal" data-prop="forminator_dismiss_feature_114" data-nonce="<?php echo esc_attr( wp_create_nonce( 'forminator_dismiss_notification' ) ); ?>">
+		<div class="sui-slider forminator-feature-modal" data-prop="forminator_dismiss_feature_11412" data-nonce="<?php echo esc_attr( wp_create_nonce( 'forminator_dismiss_notification' ) ); ?>">
 
 			<ul role="document" class="sui-slider-content">
 
@@ -32,20 +25,23 @@ if ( ! FORMINATOR_PRO ) {
 					<div class="sui-box">
 
 						<div class="sui-box-banner" role="banner" aria-hidden="true">
-							<script src="https://fast.wistia.com/embed/medias/sbu0fqxgiu.jsonp" async></script><script src="https://fast.wistia.com/assets/external/E-v1.js" async></script><div class="wistia_responsive_padding" style="padding:56.25% 0 0 0;position:relative;"><div class="wistia_responsive_wrapper" style="height:100%;left:0;position:absolute;top:0;width:100%;"><span class="wistia_embed wistia_async_sbu0fqxgiu popover=true popoverAnimateThumbnail=true videoFoam=true" style="display:inline-block;height:100%;position:relative;width:100%">&nbsp;</span></div></div>
+							<img
+								src="<?php echo esc_url( $banner_1x ); ?>"
+								srcset="<?php echo esc_url( $banner_1x ); ?> 1x, <?php echo esc_url( $banner_2x ); ?> 2x"
+								class="sui-image"
+								alt="Forminator"
+							/>
 						</div>
 
 						<div class="sui-box-header sui-block-content-center">
 
-							<button data-a11y-dialog-hide="forminator-new-feature" style="z-index: 2" class="sui-dialog-close forminator-dismiss-new-feature" aria-label="<?php esc_html_e( 'Close this dialog window', 'forminator' ); ?>"></button>
+							<button data-a11y-dialog-hide="forminator-new-feature" class="sui-dialog-close forminator-dismiss-new-feature" aria-label="<?php esc_html_e( 'Close this dialog window', 'forminator' ); ?>"></button>
 
 							<?php //if ( FORMINATOR_PRO ) { ?>
 
-								<h2 class="sui-box-title"><?php esc_html_e( 'New! Capture leads on quizzes', 'forminator' ); ?></h2>
+								<h2 class="sui-box-title"><?php esc_html_e( 'New! Bulk Edit, Quiz Pagination, and More', 'forminator' ); ?></h2>
 
-								<p class="sui-description"><?php printf( esc_html__( 'That\'s right! You can %scapture participants data%s (such as name, email, etc.) on your quizzes with this release.', 'forminator' ), '<strong>', '</strong>' ); ?></p>
-
-								<p class="sui-description"><?php printf( esc_html__( 'While creating a quiz, you\'ll see a new option to collect leads and enabling that will add a new tab called "Leads" into the quiz editor where you can configure your lead generation from settings.', 'forminator' ), '<strong>', '</strong>' ); ?></p>
+								<p class="sui-description"><?php printf( esc_html__( 'Ever get tired of adding Select/Checkbox options one at a time? Good news! We\'ve added Bulk Edit and CSV Upload options to Radio, Checkbox and Select fields. Simply switch to Bulk Edit mode and choose from the predefined options, or import your own from a %1$s.csv%2$s file.', 'forminator' ), '<strong>', '</strong>' ); ?></p>
 
 							<?php //} else { ?>
 
@@ -53,23 +49,34 @@ if ( ! FORMINATOR_PRO ) {
 
 						</div>
 
-						<?php if ( FORMINATOR_PRO ) { ?>
+							<div class="sui-box-body" sui-spacing-bottom="0">
 
-							<div class="sui-box-footer sui-block-content-center" sui-space-bottom="60">
+								<ul class="sui-list" sui-type="bullets">
+
+									<li>
+										<p class="sui-description"><strong sui-color="darkgray"><?php esc_html_e( 'Image support in Checkbox and Radio fields', 'forminator' ); ?></strong></p>
+										<p class="sui-description"><?php esc_html_e( 'Checkbox and Radio button fields now support images. So you can now use a combination of label + image or image only as checkbox / radio options.', 'forminator' ); ?></p>
+									</li>
+
+									<li>
+										<p class="sui-description"><strong sui-color="darkgray"><?php esc_html_e( 'Pagination support in quizzes', 'forminator' ); ?></strong></p>
+										<p class="sui-description"><?php esc_html_e( 'We\'ve also added support for pagination in knowledge quizzes. This option enables you to show quiz questions one at a time, or all the questions at once.', 'forminator' ); ?></p>
+									</li>
+
+									<li>
+										<p class="sui-description"><strong sui-color="darkgray"><?php esc_html_e( 'Set reCAPTCHA badge position', 'forminator' ); ?></strong></p>
+										<p class="sui-description"><?php esc_html_e( 'You now have more control over where the reCAPTCHA V3 badge should be positioned on your form pages.', 'forminator' ); ?></p>
+									</li>
+
+								</ul>
+
+							</div>
+
+							<div class="sui-box-footer sui-block-content-center">
 
 								<button class="sui-button forminator-dismiss-new-feature" type="button" data-a11y-dialog-hide="forminator-new-feature"><?php esc_html_e( 'Got It', 'forminator' ); ?></button>
 
 							</div>
-
-						<?php } else { ?>
-
-							<div class="sui-box-footer sui-block-content-center" sui-space-bottom="60">
-
-								<button class="sui-button forminator-dismiss-new-feature" type="button" data-a11y-dialog-hide="forminator-new-feature"><?php esc_html_e( 'Got It', 'forminator' ); ?></button>
-
-							</div>
-
-						<?php } ?>
 
 					</div>
 

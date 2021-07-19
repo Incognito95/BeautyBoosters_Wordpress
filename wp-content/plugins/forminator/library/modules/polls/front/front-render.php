@@ -176,15 +176,20 @@ class Forminator_Poll_Front extends Forminator_Render_Form {
         $is_ajax_submit = $this->is_ajax_submit();
         $is_preview     = $this->is_preview;
 		$hidden_wrap    = '<div class="forminator-response-message" aria-hidden="true">';
-        if ( ! $is_preview && ! $is_ajax_submit && ! empty( $_REQUEST ) ) {
+        if ( ! $is_preview && ! $is_ajax_submit ) {
             $label_class = isset( $_REQUEST[0] ) || ( isset( $_REQUEST['saved'] ) && $_REQUEST['saved'] ) ? 'forminator-success' : 'forminator-error';
             $message_wrap = '<div class="forminator-response-message forminator-show ' . esc_attr( $label_class ) . '" >';
         } else {
             $message_wrap = $hidden_wrap;
         }
 
+		ob_start();
+		do_action( 'forminator_poll_post_message', $this->model->id, self::$render_ids[ $this->model->id ] ); // prints html, so we need to capture this
+		$custom_message = ob_get_clean();
+		$custom_message = trim( $custom_message );
+		$html          .= $custom_message;
+
 			ob_start();
-			do_action( 'forminator_poll_post_message', $this->model->id, self::$render_ids[ $this->model->id ] ); // prints html, so we need to capture this
 
 			if ( isset( $_REQUEST['saved'] ) && ! isset( $_REQUEST['results'] ) ) { // WPCS: CSRF OK
 
@@ -219,7 +224,7 @@ class Forminator_Poll_Front extends Forminator_Render_Form {
 
 		if ( $message ) {
 			$html .= $message_wrap . $message . '</div>';
-		} else {
+		} elseif ( ! $custom_message ) {
 			$html .= $hidden_wrap . '</div>';
 		}
 
@@ -549,7 +554,7 @@ class Forminator_Poll_Front extends Forminator_Render_Form {
 
 			$html .= $this->radio_field_markup( $field, $input_id, $name );
 
-			$html .= '<span class="forminator-radio--design" aria-hidden="true"></span>';
+			$html .= '<span class="forminator-radio--design forminator-radio-bullet" aria-hidden="true"></span>';
 
 			$html .= sprintf( '<span class="forminator-radio--label">%s</span>', $label );
 
@@ -746,6 +751,9 @@ class Forminator_Poll_Front extends Forminator_Render_Form {
 
 		$design   = $this->get_form_design();
 		$settings = $this->get_form_settings();
+		$answers_count = $this->get_fields();
+		$answers_count = count( $answers_count[0]['fields'] );
+		$adjusted_height = $answers_count < 6 ? 200 : $answers_count * 35;
 
 		if ( is_object( $this->model ) ) {
 
@@ -767,7 +775,7 @@ class Forminator_Poll_Front extends Forminator_Render_Form {
 
 				<div class="forminator-poll-body">
 
-					<canvas id="<?php echo esc_attr( $chart_container ); ?>" class="forminator-chart forminator-show" role="img" aria-hidden="true"></canvas>
+					<canvas id="<?php echo esc_attr( $chart_container ); ?>" class="forminator-chart forminator-show" role="img" aria-hidden="true" style="<?php echo sprintf( "height:%spx;", esc_attr( $adjusted_height ) ); ?>"></canvas>
 
 				</div>
 
@@ -1049,7 +1057,7 @@ class Forminator_Poll_Front extends Forminator_Render_Form {
 	 * @param array  $properties CSS properties.
 	 * @return string
 	 */
-	protected function get_css_prefix( $prefix, $properties ) {
+	protected static function get_css_prefix( $prefix, $properties, $slug ) {
 		if ( ! isset( $properties['forminator-poll-design'] ) || 'none' !== $properties['forminator-poll-design'] ) {
 			$prefix .= ' ';
 		}

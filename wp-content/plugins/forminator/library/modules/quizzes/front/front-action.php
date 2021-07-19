@@ -189,6 +189,67 @@ class Forminator_Quiz_Front_Action extends Forminator_Front_Action {
 	}
 
 	/**
+	 * Get result quiz buttons
+	 *
+	 * @param object $model Model.
+	 * @param bool   $is_material_design True if material design is selected.
+	 * @return string
+	 */
+	private static function get_result_quiz_buttons( $model, $is_material_design = false ) {
+		$html = '';
+
+		$is_button = 'true';
+
+		if ( $is_material_design ) {
+			$is_button = 'false';
+		}
+
+		$can_shrink = '';
+
+		if ( 'true' === $is_button ) {
+			$can_shrink = ' data-shrink="true"';
+
+			if ( ! empty( $model->settings['pagination'] ) ) {
+				$can_shrink = ' data-shrink="false"';
+			}
+		}
+
+		$retake = sprintf(
+			'<button type="button" class="%s" data-button="%s"%s>%s%s%s%s</button>',
+			'forminator-button forminator-button-dynamic forminator-result--retake', // class
+			$is_material_design ? 'false' : 'true', // data-button
+			$is_material_design ? '' : $can_shrink,
+			$is_material_design ? '' : '<span class="forminator-icon-refresh" aria-hidden="true"></span>', // icon markup
+			$is_material_design ? '' : '<span>',
+			esc_html__( 'Retake Quiz', 'forminator' ),
+			$is_material_design ? '' : '</span>'
+		);
+
+		$review = sprintf(
+			'<button type="button" class="%s" data-button="%s"%s>%s%s%s%s</button>',
+			'forminator-button forminator-button-dynamic forminator-result--view-answers', // class
+			$is_material_design ? 'false' : 'true', // data-button
+			$is_material_design ? '' : $can_shrink,
+			$is_material_design ? '' : '<span class="forminator-icon-chevron-left" aria-hidden="true"></span>', // icon markup
+			$is_material_design ? '' : '<span>',
+			esc_html__( 'View Answers', 'forminator' ),
+			$is_material_design ? '' : '</span>'
+		);
+
+		$html .= '<div class="forminator-quiz--action-buttons">';
+
+			if ( ! empty( $model->settings['pagination'] ) ) {
+				$html .= $review;
+			}
+
+			$html .= $retake;
+
+		$html .= '</div>';
+
+		return $html;
+	}
+
+	/**
 	 * Render No wrong result
 	 *
 	 * @since 1.0
@@ -233,10 +294,7 @@ class Forminator_Quiz_Front_Action extends Forminator_Front_Action {
 					<img src="<?php echo esc_html( $result['image'] ); ?>" aria-hidden="true" class="forminator-result--image" />
 				<?php endif; ?>
 
-				<button class="forminator-result--retake" type="button">
-					<span class="forminator-icon-refresh" aria-hidden="true"></span>
-					<span><?php esc_html_e( "Retake Quiz", 'forminator' ); ?></span>
-				</button>
+				<?php echo self::get_result_quiz_buttons( $model ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 			</div>
 
@@ -260,7 +318,7 @@ class Forminator_Quiz_Front_Action extends Forminator_Front_Action {
 
 						<hr />
 
-						<button class="forminator-result--retake" type="button"><?php esc_html_e( 'Retake Quiz', 'forminator' ); ?></button>
+						<?php echo self::get_result_quiz_buttons( $model, true ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 					</div>
 
@@ -270,10 +328,7 @@ class Forminator_Quiz_Front_Action extends Forminator_Front_Action {
 
 						<span class="forminator-result--quiz-name"><?php echo forminator_get_quiz_name( $model->id ); // WPCS: XSS ok. ?></span>
 
-						<button class="forminator-result--retake" type="button">
-							<span class="forminator-icon-refresh" aria-hidden="true"></span>
-							<span><?php esc_html_e( "Retake Quiz", 'forminator' ); ?></span>
-						</button>
+						<?php echo self::get_result_quiz_buttons( $model ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 					</div>
 
@@ -753,10 +808,7 @@ class Forminator_Quiz_Front_Action extends Forminator_Front_Action {
 
 		<div role="alert" class="forminator-quiz--summary">
             <?php echo wpautop( $text, true ); // WPCS: XSS ok. ?>
-            <button class="forminator-result--retake" type="button">
-                <span class="forminator-icon-refresh" aria-hidden="true"></span>
-                <span><?php esc_html_e( "Retake Quiz", 'forminator' ); ?></span>
-            </button>
+			<?php echo self::get_result_quiz_buttons( $model ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         </div>
 
 		<?php

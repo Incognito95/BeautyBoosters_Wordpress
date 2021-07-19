@@ -1,3 +1,45 @@
+v1.9.12
+- 🐛 fix(radio): Image being cut off when inline alignment.
+- 🐛 fix(radio): Update static and hover effect for Material design.
+- 🐛 fix(checkbox): Image being cut off when inline alignment.
+- 🐛 fix(checkbox): Update static and hover effect for Material design.
+
+
+v1.9.11
+- ✨ new(button-dynamic): Add dynamic button styles.
+- ✨ new(action-buttons): Add action buttons container styles.
+- 🐛 fix(quiz): Add spacing between paragraphs inside Quiz description.
+- 🐛 fix(checkbox): Missing image hover and checked effect for Material design.
+- 🐛 fix(button): Prevent styles label from overwriting icon.
+
+
+v1.9.10
+- 🐛 fix(form-radio): New design for hover and checked state.
+- 🐛 fix(form-checkbox): New design for hover and checked state.
+
+v1.9.9
+- 🐛 fix(quiz): Correct spacing between question elements.
+
+
+v1.9.8
+- 🐛 fix(form-radio): Correct image placement and size.
+- 🐛 fix(form-checkbox): Correct image placement and size.
+
+
+v1.9.7
+- 🐛 fix(form-radio): Make styles match new markup.
+- 🐛 fix(form-checkbox): Make styles match new markup.
+
+
+v1.9.6
+- 🐛 fix(dropdown): Increase dropdown `z-index`.
+
+
+v1.9.5
+- 🐛 fix(radio): Improve styles for radio with image.
+- 🐛 fix(checkbox): Improve styles for checkbox with image.
+
+
 v1.9.4
 - 🐛 fix(phone field): Fix flag selector positioning for phone field when using material style.
 - 🐛 fix(unordered list): Unordered list does not have bullets in admin preview.

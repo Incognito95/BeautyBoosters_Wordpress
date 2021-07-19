@@ -349,9 +349,6 @@ class Forminator_Export {
 			$export_results = array();
 			foreach ( $info as $export_result ) {
 
-				// files reference needed for future deletion
-				$current_files[] = $export_result->file_path;
-
 				/** @var Forminator_Export_Result $export_result */
 				$schedule_key    = $export_result->model->id . $export_result->form_type;
 				$export_schedule = $this->get_entries_export_schedule( $schedule_key );
@@ -381,6 +378,8 @@ class Forminator_Export {
 					}
 				}
 
+				// files reference needed for future deletion
+				$current_files[]  = $export_result->file_path;
 				$export_results[] = $export_result;
 			}
 			$files += $current_files;

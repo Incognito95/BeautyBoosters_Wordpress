@@ -4,7 +4,7 @@
 		<?php if ( forminator_array_value_exists( $properties, 'cform-radio-font-size' ) ) { ?>
 			font-size: <?php echo $properties['cform-radio-font-size'] ?>px;
 		<?php } else { ?>
-			font-size: 16px;
+			font-size: 14px;
 		<?php } ?>
 		<?php if ( forminator_array_value_exists( $properties, 'cform-radio-font-family' ) ) { ?>
 			<?php if ( $properties['cform-radio-font-family'] != 'custom' && !empty( $properties['cform-radio-font-family'] ) ) { ?>
@@ -27,7 +27,7 @@
 <?php } else { ?>
 
 	.forminator-ui#forminator-module-<?php echo $properties['form_id'] ?>.forminator-design--<?php echo $theme; ?> .forminator-radio {
-		font-size: 16px;
+		font-size: 14px;
 		font-family: inherit;
 		font-weight: 400;
 	}

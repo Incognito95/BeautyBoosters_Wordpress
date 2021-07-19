@@ -283,9 +283,9 @@ class Forminator_Calculation extends Forminator_Field {
 	 *
 	 * @return string
 	 */
-	public function get_converted_formula( $submitted_data, $field_settings, $custom_form, $hidden_fields = array() ) {
+	public function get_converted_formula( $submitted_data, $pseudo_submitted_data, $field_settings, $custom_form, $hidden_fields = array() ) {
 		$formula           = $this->get_calculable_value( $submitted_data, $field_settings );
-		$converted_formula = forminator_calculator_maybe_replace_fields_on_formula( $formula, $submitted_data, $custom_form, $hidden_fields );
+		$converted_formula = forminator_calculator_maybe_replace_fields_on_formula( $formula, $submitted_data, $pseudo_submitted_data, $custom_form, $hidden_fields );
 
 		/**
 		 * Filter converted formula from calculation field

@@ -93,7 +93,7 @@ function forminator_calculator_get_max_nested_formula() {
  *
  * @return string
  */
-function forminator_calculator_maybe_replace_fields_on_formula( $formula, $submitted_data, $custom_form, $hidden_fields = array(), &$nested_count = 0 ) {
+function forminator_calculator_maybe_replace_fields_on_formula( $formula, $submitted_data, $pseudo_submitted_data, $custom_form, $hidden_fields = array(), &$nested_count = 0 ) {
 
 	// more then allowed nested formula
 	if ( $nested_count > forminator_calculator_get_max_nested_formula() ) {
@@ -145,7 +145,7 @@ function forminator_calculator_maybe_replace_fields_on_formula( $formula, $submi
 			}
 
 			$submitted_field_data = isset( $submitted_data[ $field_id ] ) ? $submitted_data[ $field_id ] : null;
-			if ( $field_object->is_hidden( $field_settings, $submitted_data, [], $custom_form, $hidden_fields ) ) {
+			if ( $field_object->is_hidden( $field_settings, $submitted_data, $pseudo_submitted_data, $custom_form, $hidden_fields ) ) {
 				// skip validation, hidden values = 0 or 1
 				// see Forminator_CForm_Front_Action::replace_hidden_field_values()
 				$value = Forminator_CForm_Front_Action::replace_to( $field_id, $formula );
@@ -166,7 +166,7 @@ function forminator_calculator_maybe_replace_fields_on_formula( $formula, $submi
 
 	if ( $nested_exists ) {
 		$nested_count ++;
-		$formula = forminator_calculator_maybe_replace_fields_on_formula( $formula, $submitted_data, $custom_form, $hidden_fields, $nested_count );
+		$formula = forminator_calculator_maybe_replace_fields_on_formula( $formula, $submitted_data, $pseudo_submitted_data, $custom_form, $hidden_fields, $nested_count );
 	}
 
 	return $formula;

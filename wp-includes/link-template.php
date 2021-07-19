@@ -1482,34 +1482,34 @@ function get_edit_post_link( $id = 0, $context = 'display' ) {
  * @param int|WP_Post $id     Optional. Post ID or post object. Default is the global `$post`.
  * @param string      $class  Optional. Add custom class to link. Default 'post-edit-link'.
  */
-// function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $class = 'post-edit-link' ) {
-// 	$post = get_post( $id );
-// 	if ( ! $post ) {
-// 		return;
-// 	}
+function edit_post_link( $text = null, $before = '', $after = '', $id = 0, $class = 'post-edit-link' ) {
+	$post = get_post( $id );
+	if ( ! $post ) {
+		return;
+	}
 
-// 	$url = get_edit_post_link( $post->ID );
-// 	if ( ! $url ) {
-// 		return;
-// 	}
+	$url = get_edit_post_link( $post->ID );
+	if ( ! $url ) {
+		return;
+	}
 
-// 	if ( null === $text ) {
-// 		$text = __( 'Edit This' );
-// 	}
+	if ( null === $text ) {
+		$text = __( 'Edit This' );
+	}
 
-// 	$link = '<a class="' . esc_attr( $class ) . '" href="' . esc_url( $url ) . '">' . $text . '</a>';
+	$link = '<a class="' . esc_attr( $class ) . '" href="' . esc_url( $url ) . '">' . $text . '</a>';
 
-// 	/**
-// 	 * Filters the post edit link anchor tag.
-// 	 *
-// 	 * @since 2.3.0
-// 	 *
-// 	 * @param string $link    Anchor tag for the edit link.
-// 	 * @param int    $post_id Post ID.
-// 	 * @param string $text    Anchor text.
-// 	 */
-// 	echo $before . apply_filters( 'edit_post_link', $link, $post->ID, $text ) . $after;
-// }
+	/**
+	 * Filters the post edit link anchor tag.
+	 *
+	 * @since 2.3.0
+	 *
+	 * @param string $link    Anchor tag for the edit link.
+	 * @param int    $post_id Post ID.
+	 * @param string $text    Anchor text.
+	 */
+	echo $before . apply_filters( 'edit_post_link', $link, $post->ID, $text ) . $after;
+}
 
 /**
  * Retrieves the delete posts link for post.

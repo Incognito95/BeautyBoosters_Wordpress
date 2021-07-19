@@ -132,9 +132,12 @@ class Forminator_Radio extends Forminator_Field {
 		$post_value  = self::get_post_data( $name, false );
 		$description = self::get_property( 'description', $field, '' );
 		$label       = esc_html( self::get_property( 'field_label', $field, '' ) );
-		$class      = ( 'horizontal' === self::get_property( 'layout', $field, '' ) ) ? 'forminator-radio forminator-radio-inline' : 'forminator-radio';
 		$design      = $this->get_form_style( $settings );
 		$calc_enabled = self::get_property( 'calculations', $field, false, 'bool' );
+		$images_enabled		  = self::get_property( 'enable_images', $field, false );
+		$images_enabled		  = filter_var( $images_enabled, FILTER_VALIDATE_BOOLEAN );
+		$input_visibility 	  = self::get_property( 'input_visibility', $field, 'true' );
+		$input_visibility 	  = filter_var( $input_visibility, FILTER_VALIDATE_BOOLEAN );
 
 		$uniq_id = uniqid();
 
@@ -142,13 +145,25 @@ class Forminator_Radio extends Forminator_Field {
 			$ariareq = 'true';
 		}
 
-		$html .= '<fieldset class="forminator-field" role="radiogroup">';
+		$html .= sprintf(
+			'<div role="radiogroup" class="forminator-field" aria-labelledby="%s">',
+			'forminator-radiogroup-' . $uniq_id . '-label'
+		);
 
 		if ( $label ) {
 			if ( $required ) {
-				$html .= sprintf( '<label class="forminator-label">%s %s</label>', $label, forminator_get_required_icon() );
+				$html .= sprintf(
+					'<h4 id="%s" class="forminator-label">%s %s</h4>',
+					'forminator-radiogroup-' . $uniq_id . '-label',
+					$label,
+					forminator_get_required_icon()
+				);
 			} else {
-				$html .= sprintf( '<label class="forminator-label">%s</label>', $label );
+				$html .= sprintf(
+					'<h4 id="%s" class="forminator-label">%s</h4>',
+					'forminator-radiogroup-' . $uniq_id . '-label',
+					$label
+				);
 			}
 		}
 
@@ -158,6 +173,47 @@ class Forminator_Radio extends Forminator_Field {
 			$option_default    = isset( $option['default'] ) ? filter_var( $option['default'], FILTER_VALIDATE_BOOLEAN ) : false;
 			$selected          = ( $value === $post_value || $option_default ) ? 'checked="checked"' : '';
 			$calculation_value = $calc_enabled && isset( $option['calculation'] ) ? $option['calculation'] : 0.0;
+			$option_image_url  = array_key_exists( 'image', $option ) ? $option['image'] : '';
+			$option_label      = sprintf(
+				'<span class="forminator-radio-label">%s</span>',
+				wp_kses(
+					$option['label'],
+					array(
+						'a'      => array(
+							'href'  => array(),
+							'title' => array()
+						),
+						'span'   => array(
+							'class' => array()
+						),
+						'b' 	 => array(),
+						'i' 	 => array(),
+						'br'     => array(),
+						'em'     => array(),
+						'strong' => array(),
+					)
+				)
+			);
+			$aria_label        = sprintf(
+				'<span class="forminator-screen-reader-only">%s</span>',
+				wp_kses(
+					$option['label'],
+					array(
+						'a'      => array(
+							'href'  => array(),
+							'title' => array()
+						),
+						'span'   => array(
+							'class' => array()
+						),
+						'b' 	 => array(),
+						'i' 	 => array(),
+						'br'     => array(),
+						'em'     => array(),
+						'strong' => array(),
+					)
+				)
+			);
 
 			// Check if Pre-fill parameter used
 			if ( $this->has_prefill( $field ) ) {
@@ -169,9 +225,24 @@ class Forminator_Radio extends Forminator_Field {
 				}
 			}
 
+			$class = 'forminator-radio';
+
+			if ( $images_enabled && ! empty( $option_image_url ) ) {
+
+				$class .= ' forminator-has_image';
+
+				if ( $input_visibility ) {
+					$class .= ' forminator-has_bullet';
+				}
+			}
+
+			if ( 'horizontal' === self::get_property( 'layout', $field, '' ) ) {
+				$class .= ' forminator-radio-inline';
+			}
+
 			$selected = $option_default ? 'checked="checked"' : '';
 
-			$html .= '<label for="' . $input_id . '" class="' . $class . '">';
+			$html .= '<label for="' . esc_attr( $input_id ) . '" class="' . esc_attr( $class ) . '" title="' . esc_attr( $option['label'] ) . '">';
 
 				$html .= sprintf(
 					'<input type="radio" name="%s" value="%s" id="%s" data-calculation="%s" %s />',
@@ -182,32 +253,41 @@ class Forminator_Radio extends Forminator_Field {
 					$selected
 				);
 
-				$html .= '<span aria-hidden="true"></span>';
+				if ( $input_visibility && ( $images_enabled && ! empty( $option_image_url ) ) ) {
 
-				$html .= sprintf(
-					'<span>%s</span>',
-					wp_kses(
-								$option['label'], 
-								array(
-									'a'      => array(
-												'href'  => array(),
-												'title' => array()
-									),
-									'span'   => array(
-												'class' => array()
-									),
-									'img'   => array(
-												'src' => array(),
-												'alt' => array()
-									),
-									'b' 	 => array(),
-									'i' 	 => array(),
-									'br'     => array(),
-									'em'     => array(),
-									'strong' => array(),
-								)
-							)
-				);
+					// Bullet + Label.
+					$html .= '<span class="forminator-radio-bullet" aria-hidden="true"></span>';
+					$html .= $option_label;
+
+					// Image.
+					if ( 'none' === $design ) {
+						$html .= '<img class="forminator-radio-image" src="' . esc_url( $option_image_url ) . '" aria-hidden="true" />';
+					} else {
+						$html .= '<span class="forminator-radio-image" aria-hidden="true">';
+							$html .= '<span style="background-image: url(' . esc_url( $option_image_url ) . ');"></span>';
+						$html .= '</span>';
+					}
+				} else if ( ! $input_visibility && ( $images_enabled && ! empty( $option_image_url ) ) ) {
+
+					// Image.
+					if ( 'none' === $design ) {
+						$html .= '<img class="forminator-radio-image" src="' . esc_url( $option_image_url ) . '" aria-hidden="true" />';
+					} else {
+						$html .= '<span class="forminator-radio-image" aria-hidden="true">';
+							$html .= '<span style="background-image: url(' . esc_url( $option_image_url ) . ');"></span>';
+						$html .= '</span>';
+					}
+
+					// Aria Label.
+					$html .= $aria_label;
+
+				} else {
+
+					// Bullet + Label.
+					$html .= '<span class="forminator-radio-bullet" aria-hidden="true"></span>';
+					$html .= $option_label;
+
+				}
 
 			$html .= '</label>';
 
@@ -217,7 +297,7 @@ class Forminator_Radio extends Forminator_Field {
 
 			$html .= self::get_description( $description );
 
-		$html .= '</fieldset>';
+		$html .= '</div>';
 
 		return apply_filters( 'forminator_field_single_markup', $html, $id, $required, $options, $value_type );
 	}

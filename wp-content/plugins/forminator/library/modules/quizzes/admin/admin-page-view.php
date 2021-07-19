@@ -31,13 +31,13 @@ class Forminator_Quiz_Page extends Forminator_Admin_Module_Edit_Page {
 	 *
 	 * @return array
 	 */
-	protected function module_array( $id, $title, $views, $date, $status, $model ) {
+	protected static function module_array( $id, $title, $views, $date, $status, $model ) {
 		return array(
 					"id"              => $id,
 					"title"           => $title,
 					"entries"         => Forminator_Form_Entry_Model::count_entries( $id ),
-					"has_leads"       => $this->has_leads( $model ),
-					"leads_id"        => $this->get_leads_id( $model ),
+					"has_leads"       => self::has_leads( $model ),
+					"leads_id"        => self::get_leads_id( $model ),
 					"leads"           => Forminator_Form_Entry_Model::count_leads( $id ),
 					"last_entry_time" => forminator_get_latest_entry_time_by_form_id( $id ),
 					"views"           => $views,
@@ -55,8 +55,8 @@ class Forminator_Quiz_Page extends Forminator_Admin_Module_Edit_Page {
 	 *
 	 * @return bool
 	 */
-	public function has_leads( $model ) {
-		if ( isset( $model->settings['hasLeads'] ) && "true" === $model->settings['hasLeads'] ) {
+	public static function has_leads( $model ) {
+		if ( isset( $model->settings['hasLeads'] ) && in_array( $model->settings['hasLeads'], array( true, 'true' ), true ) ) {
 			return true;
 		}
 
@@ -70,9 +70,9 @@ class Forminator_Quiz_Page extends Forminator_Admin_Module_Edit_Page {
 	 *
 	 * @return int
 	 */
-	public function get_leads_id( $model ) {
+	public static function get_leads_id( $model ) {
 		$leadsId = 0;
-		if ( $this->has_leads( $model ) && isset( $model->settings['leadsId'] ) ) {
+		if ( self::has_leads( $model ) && isset( $model->settings['leadsId'] ) ) {
 			$leadsId = $model->settings['leadsId'];
 		}
 
@@ -88,7 +88,7 @@ class Forminator_Quiz_Page extends Forminator_Admin_Module_Edit_Page {
 	 *
 	 * @return float|int
 	 */
-	public function getLeadsRate( $module ) {
+	public static function getLeadsRate( $module ) {
 		if ( $module['views'] > 0 ) {
 			$rate = round( ( $module["leads"] * 100 ) / $module["views"], 1 );
 		} else {
@@ -113,28 +113,5 @@ class Forminator_Quiz_Page extends Forminator_Admin_Module_Edit_Page {
 				'delete-entries-quizzes' => __( "Delete Submissions", 'forminator' ),
 				'delete-quizzes'         => __( "Delete", 'forminator' ),
 			) );
-	}
-
-	/**
-	 * Delete module
-	 *
-	 * @since 1.6
-	 *
-	 * @param $id
-	 */
-	public function delete_module( $id ) {
-		//check if this id is valid and the record is exists
-		$model = Forminator_Base_Form_Model::get_model( $id );
-		if ( is_object( $model ) ) {// Delete leads form on quiz delete
-			if ( isset( $model->settings['hasLeads'] ) && isset( $model->settings['leadsId'] ) && $model->settings['hasLeads'] ) {
-				$leads_id = $model->settings['leadsId'];
-				$leads_model = Forminator_Form_Model::model()->load( $leads_id );
-
-				if ( is_object( $leads_model ) ) {
-					wp_delete_post( $leads_id );
-				}
-			}
-			parent::delete_module( $id );
-		}
 	}
 }

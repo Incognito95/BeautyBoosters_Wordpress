@@ -24,8 +24,6 @@ class Forminator_Poll_Front_Action extends Forminator_Front_Action {
 	 */
 	public $entry_type = 'poll';
 
-	public function footer_message() {}
-
 	/**
 	 * Handle form action
 	 *
@@ -37,6 +35,8 @@ class Forminator_Poll_Front_Action extends Forminator_Front_Action {
 	 * @return bool|array
 	 */
 	protected function handle_form( $form_id, $preview = false ) {
+		self::$module_id = $form_id;
+
 		$poll = Forminator_Poll_Model::model()->load( $form_id );
 		if ( ! is_object( $poll ) ) {
 			return false;
@@ -101,6 +101,8 @@ class Forminator_Poll_Front_Action extends Forminator_Front_Action {
 				'value' => Forminator_Geo::get_user_ip(),
 			);
 		}
+
+		$setting = $poll->settings;
 		if ( ! empty( $extra_field ) ) {
 			$field_data_array[] = array(
 				'name'  => 'extra',
@@ -122,7 +124,14 @@ class Forminator_Poll_Front_Action extends Forminator_Front_Action {
 			 */
 			$is_spam = apply_filters( 'forminator_spam_protection', false, $field_data_array, $form_id, 'poll' );
 
-			$entry->is_spam = $is_spam;
+			if ( $is_spam ) {
+				$fail_message = self::get_akismet_fail_message( $setting );
+				if ( false !== $fail_message ) {
+					return self::return_error( $fail_message );
+				} else {
+					$entry->is_spam = $is_spam;
+				}
+			}
 		}
 
 		// If preview, skip integrations
@@ -168,7 +177,6 @@ class Forminator_Poll_Front_Action extends Forminator_Front_Action {
 		// ADDON add_entry_fields
 		$added_data_array = $this->attach_addons_add_entry_fields( $form_id, $poll, $field_data_array );
 		$added_data_array = array_merge( $field_data_array, $added_data_array );
-		$setting          = $poll->settings;
 
 
 		$entry->set_fields( $added_data_array );
@@ -334,14 +342,15 @@ class Forminator_Poll_Front_Action extends Forminator_Front_Action {
         // Only show to related form
 		if ( ! empty( $response ) && is_array( $response ) && (int) $form_id === (int) $post_form_id ) {
 			$label_class = $response['success'] ? 'forminator-success' : 'forminator-error';
-            if ( isset( $response['notice'] ) && $response['notice'] === 'error' ) {
-            ?>
-                <p class="forminator-label--<?php echo esc_attr( $label_class ); ?>"><?php echo esc_html( $response['message'] ); // WPCS: XSS ok. ?></p>
-            <?php
-            } elseif ( isset( $response['success'] ) && $response['success'] ) {
-            ?>
-                <p class="forminator-label--<?php echo esc_attr( $label_class ); ?>"><?php echo esc_html( $response['message'] ); // WPCS: XSS ok. ?></p>
-            <?php
+			if ( isset( $response['notice'] ) && $response['notice'] === 'error'
+				|| isset( $response['success'] ) && $response['success'] ) {
+				?>
+				<div class="forminator-response-message forminator-show <?php echo esc_attr( $label_class ); ?>">
+					<p class="forminator-label--<?php echo esc_attr( $label_class ); ?>">
+						<?php echo esc_html( $response['message'] ); ?>
+					</p>
+				</div>
+				<?php
             }
 		}
     }

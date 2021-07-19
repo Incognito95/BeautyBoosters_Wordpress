@@ -70,8 +70,9 @@ class Forminator_Captcha extends Forminator_Field {
 	public function defaults() {
 
 		return array(
-			'captcha_type'            => __( 'v2_checkbox', 'forminator' ),
-			'score_threshold'         => __( '0.5', 'forminator' ),
+			'captcha_type'            => 'v2_checkbox',
+			'score_threshold'         => '0.5',
+			'captcha_badge'           => 'bottomright',
 			'recaptcha_error_message' => __( 'reCAPTCHA verification failed. Please try again.', 'forminator' ),
 		);
 	}
@@ -118,6 +119,7 @@ class Forminator_Captcha extends Forminator_Field {
 	 */
 	public function markup( $field, $settings = array() ) {
 
+		$captcha_badge = '';
 		$captcha_type  = self::get_property( 'captcha_type', $field, '' );
 		$captcha_theme = self::get_property( 'captcha_theme', $field, 'light' );
 		$captcha_size  = self::get_property( 'captcha_size', $field, 'normal' );
@@ -135,12 +137,13 @@ class Forminator_Captcha extends Forminator_Field {
 		$captcha_class = 'forminator-g-recaptcha';
 
 		if ( $this->is_invisible_recaptcha( $field ) ) {
+			$captcha_badge  = 'data-badge="' . self::get_property( 'captcha_badge', $field, 'inline' ) . '"';
 			$captcha_size   = 'invisible';
 			$captcha_class .= ' recaptcha-invisible';
 		}
 
 		// dont use .g-recaptcha class as it will rendered automatically when other plugin load recaptcha with default render
-		return sprintf( '<div class="%s" data-theme="%s" data-sitekey="%s" data-size="%s"></div>', $captcha_class, $captcha_theme, $key, $captcha_size );
+		return sprintf( '<div class="%s" data-theme="%s" %s data-sitekey="%s" data-size="%s"></div>', $captcha_class, $captcha_theme, $captcha_badge, $key, $captcha_size );
 	}
 
 

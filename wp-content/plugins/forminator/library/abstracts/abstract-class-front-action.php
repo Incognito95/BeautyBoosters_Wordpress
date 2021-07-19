@@ -41,6 +41,13 @@ abstract class Forminator_Front_Action {
 	 */
 	protected static $response_attrs = array();
 
+	/**
+	 * Module ID
+	 *
+	 * @var int
+	 */
+	protected static $module_id = 0;
+
 	public function __construct() {
 		//Save entries
 		if ( ! empty( $this->entry_type ) ) {
@@ -116,6 +123,11 @@ abstract class Forminator_Front_Action {
 			 */
 			do_action( 'forminator_' . static::$module_slug . '_before_handle_submit', $form_id );
 
+			if ( 'form' === static::$module_slug ) {
+				// remove after 1.15.1.
+				do_action_deprecated( 'forminator_custom_form_before_handle_submit', array( $form_id ), '1.14.12', 'forminator_form_before_handle_submit' );
+			}
+
 			$response = $this->handle_form( $form_id );
 
 			// sanitize front end message
@@ -134,6 +146,11 @@ abstract class Forminator_Front_Action {
 			 * @return array $response
 			 */
 			$response = apply_filters( 'forminator_' . static::$module_slug . '_submit_response', $response, $form_id );
+
+			if ( 'form' === static::$module_slug ) {
+				// remove after 1.15.1.
+				do_action_deprecated( 'forminator_custom_form_after_handle_submit', array( $form_id, $response ), '1.14.12', 'forminator_form_after_handle_submit' );
+			}
 
 			/**
 			 * Action called after full form submit
@@ -157,6 +174,11 @@ abstract class Forminator_Front_Action {
 						$_POST = array();
 					}
 				} else {
+					if ( $response['message'] ) {
+						add_action( 'forminator_' . static::$module_slug . '_post_message', array( $this, 'form_response_message' ), 10, 2 );
+						// cleanup submitted data
+						$_POST = array();
+					}
 					add_action( 'wp_footer', array( $this, 'footer_message' ) );
 				}
 			}
@@ -268,6 +290,11 @@ abstract class Forminator_Front_Action {
 				 */
 				do_action( 'forminator_' . static::$module_slug . '_before_save_entry', $form_id );
 
+				if ( 'form' === static::$module_slug ) {
+					// remove after 1.15.1.
+					do_action_deprecated( 'forminator_custom_form_before_save_entry', array( $form_id ), '1.14.12', 'forminator_form_before_save_entry' );
+				}
+
 				$response = $this->handle_form( $form_id );
 
 				// sanitize front end message
@@ -286,6 +313,11 @@ abstract class Forminator_Front_Action {
 				 */
 				$response = apply_filters( 'forminator_' . static::$module_slug . '_ajax_submit_response', $response, $form_id );
 
+				if ( 'form' === static::$module_slug ) {
+					// remove after 1.15.1.
+					do_action_deprecated( 'forminator_custom_form_after_save_entry', array( $form_id, $response ), '1.14.12', 'forminator_form_after_save_entry' );
+				}
+
 				/**
 				 * Action called after form ajax
 				 *
@@ -303,11 +335,11 @@ abstract class Forminator_Front_Action {
 						wp_send_json_success( $response );
 					}
 				}
-						wp_send_json_error( 'invalid response' );
+						wp_send_json_error( __( 'Invalid form response', 'forminator' ) );
 			}
-						wp_send_json_error( 'invalid id' );
+						wp_send_json_error( __( 'Invalid ID', 'forminator' ) );
 		}
-						wp_send_json_error( 'invalid nonce' );
+						wp_send_json_error( __( 'Invalid nonce. Please refresh your browser.', 'forminator' ) );
 	}
 
 	/**
@@ -331,6 +363,11 @@ abstract class Forminator_Front_Action {
 				 * @param int $form_id - the form id
 				 */
 				do_action( 'forminator_' . static::$module_slug . '_before_save_entry', $form_id );
+				
+				if ( 'form' === static::$module_slug ) {
+					// remove after 1.15.1.
+					do_action_deprecated( 'forminator_custom_form_before_save_entry', array( $form_id ), '1.14.12', 'forminator_form_before_save_entry' );
+				}
 
 				$response = $this->handle_form( $form_id, true );
 				// sanitize front end message
@@ -347,6 +384,11 @@ abstract class Forminator_Front_Action {
 				 * @param int $form_id - the form id
 				 */
 				$response = apply_filters( 'forminator_' . static::$module_slug . '_ajax_submit_response', $response, $form_id );
+
+				if ( 'form' === static::$module_slug ) {
+					// remove after 1.15.1.
+					do_action_deprecated( 'forminator_custom_form_after_save_entry', array( $form_id, $response ), '1.14.12', 'forminator_form_after_save_entry' );
+				}
 
 				/**
 				 * Action called after form ajax
@@ -646,6 +688,25 @@ abstract class Forminator_Front_Action {
 	}
 
 	/**
+	 * Get Akismet fail message or false for storing the current submission and marking it as spam.
+	 *
+	 * @param array $setting Module settings.
+	 * @return boolean|string
+	 */
+	protected static function get_akismet_fail_message( $setting ) {
+		if ( empty( $setting['akismet-protection-behavior'] ) || 'fail' === $setting['akismet-protection-behavior'] ) {
+			if ( ! empty( $setting['spam-fail-message'] ) ) {
+				$fail_message = $setting['spam-fail-message'];
+			} else {
+				$fail_message = __( 'Something went wrong.', 'forminator' );
+			}
+			return $fail_message;
+		} else {
+			return false;
+		}
+	}
+
+	/**
 	 * Prepare error array.
 	 *
 	 * @param string $error Error message.
@@ -656,6 +717,8 @@ abstract class Forminator_Front_Action {
 		$response = array(
 			'message' => $error,
 			'success' => false,
+			'notice'  => 'error',
+			'form_id' => static::$module_id,
 		);
 
 		if ( ! empty( $errors ) ) {

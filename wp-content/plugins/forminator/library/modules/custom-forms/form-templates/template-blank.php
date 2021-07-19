@@ -21,7 +21,7 @@ class Forminator_Template_Blank extends Forminator_Template {
 			'id'          => 'blank',
 			'name'        => __( 'Blank', 'forminator' ),
 			'description' => __( "A simple contact form for your users to contact you", 'forminator' ),
-			'icon'        => 'book',
+			'icon'        => 'clipboard-notes',
 			'priortiy'    => 1,
 		);
 	}

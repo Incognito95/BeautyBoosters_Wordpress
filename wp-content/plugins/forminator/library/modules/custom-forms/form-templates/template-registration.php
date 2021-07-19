@@ -19,7 +19,7 @@ class Forminator_Template_Registration extends Forminator_Template {
 	public function defaults() {
 		return array(
 			'id'          => 'registration',
-			'name'        => __( 'User Registration', 'forminator' ),
+			'name'        => __( 'Registration', 'forminator' ),
 			'description' => __( "A simple contact form for your users to contact you", 'forminator' ),
 			'icon'        => 'profile-male',
 			'priortiy'    => 5,
@@ -98,7 +98,6 @@ class Forminator_Template_Registration extends Forminator_Template {
 		global $wp_rewrite;
 
 		$login_url = is_null( $wp_rewrite ) ? site_url( 'wp-login.php', 'login' ) : wp_login_url();
-		$pages     = $this->get_pages();
 
 		return array(
 			"form-type"                        => "registration",
@@ -202,29 +201,11 @@ class Forminator_Template_Registration extends Forminator_Template {
 			'registration-password-field'      => 'password-1',
 			'registration-user-role'           => 'fixed',
 			'registration-role-field'          => 'subscriber',
-			//Redirected page for Email-activation method
-			'confirmation-page'                => ! empty( $pages ) ? $pages[0]->ID : '',
 			// Additional settings
 			'automatic-login'                  => false,
 			'hide-registration-form'           => true,
 			'hidden-registration-form-message' => __( 'You are already logged in.', 'forminator' ),
 			'autoclose'                        => false,
 		);
-	}
-
-	/**
-	 * Return published pages
-	 *
-	 * @since 1.11
-	 *
-	 * @return mixed
-	 */
-	private function get_pages() {
-		global $wpdb;
-
-		$sql = "SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type = 'page' AND post_status = 'publish' ORDER BY post_title ASC";
-		$pages = $wpdb->get_results( $sql );
-
-		return $pages;
 	}
 }

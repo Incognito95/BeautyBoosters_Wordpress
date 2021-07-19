@@ -5,13 +5,13 @@
 $search_keyword = null;
 $is_search = false;
 $search_module_nonce = esc_attr( 'forminator-nonce-search-module' );
-if ( isset( $_GET['search'] ) && strlen( trim( $_GET['search'] ) ) && check_admin_referer( $search_module_nonce, $search_module_nonce ) ) {
-	$search_keyword = sanitize_text_field( $_GET['search'] );
+if ( isset( $_GET['module-search'] ) && strlen( trim( $_GET['module-search'] ) ) ) {
+	$search_keyword = sanitize_text_field( $_GET['module-search'] );
 	$is_search 		= true;
 }
 
 // Get modules
-$modules = $this->getModules( $search_keyword );
+$modules = $this->getModules();
 
 // Count total polls
 $count        = ! $is_search ? $this->countModules() : count( $modules );

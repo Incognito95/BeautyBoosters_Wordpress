@@ -406,8 +406,8 @@ function forminator_localize_data() {
 		'ajaxUrl' => forminator_ajax_url(),
 		'cform'   => array(
 			'processing'                => __( 'Submitting form, please wait', 'forminator' ),
-			'error'                     => __( 'An error occurred processing the form. Please try again', 'forminator' ),
-			'upload_error'              => __( 'An upload error occurred processing the form. Please try again', 'forminator' ),
+			'error'                     => __( 'An error occurred while processing the form. Please try again', 'forminator' ),
+			'upload_error'              => __( 'An upload error occurred while processing the form. Please try again', 'forminator' ),
 			'pagination_prev'           => __( 'Previous', 'forminator' ),
 			'pagination_next'           => __( 'Next', 'forminator' ),
 			'pagination_go'             => __( 'Submit', 'forminator' ),
@@ -425,6 +425,9 @@ function forminator_localize_data() {
 		'poll'    => array(
 			'processing' => __( 'Submitting vote, please wait', 'forminator' ),
 			'error'      => __( 'An error occurred saving the vote. Please try again', 'forminator' ),
+		),
+		'quiz'    => array(
+			'view_results' => __( 'View Results', 'forminator' ),
 		),
 		'select2' => array(
 			'load_more'       => __( 'Loading more results…', 'forminator' ),

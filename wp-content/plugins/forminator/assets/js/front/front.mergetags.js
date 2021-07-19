@@ -17,6 +17,7 @@
 	// Create the defaults once
 	var pluginName = "forminatorFrontMergeTags",
 	    defaults   = {
+		    print_value: false,
 		    forminatorFields: [],
 	    };
 
@@ -59,7 +60,7 @@
 			var self = this;
 
 			this.$el.find(
-				'input.forminator-input, .forminator-checkbox, .forminator-radio, .forminator-input-file, select.forminator-select2'
+				'input.forminator-input, .forminator-checkbox, .forminator-radio, .forminator-input-file, select.forminator-select2, .forminator-multiselect input'
 			).each(function () {
 				$(this).on('change', function () {
 					// Give jquery sometime to apply changes
@@ -103,8 +104,6 @@
 
 				replace = this.get_field_value(inputName);
 
-				// bracketify
-				replace       = replace;
 				parsedValue = parsedValue.replace(fullMatch, replace);
 			}
 
@@ -143,9 +142,10 @@
 		},
 
 		get_field_value: function (element_id) {
-			var $element    = this.get_form_field(element_id);
-			var value       = '';
-			var checked     = null;
+			var $element    = this.get_form_field(element_id),
+				self        = this,
+				value       = '',
+				checked     = null;
 
 			if ( this.is_hidden( element_id ) && ! this.is_calculation( element_id ) ) {
          	return '';
@@ -166,7 +166,11 @@
 				checked = $element.filter(":checked");
 
 				if (checked.length) {
-					value = checked.siblings('span:last-child').text();
+					if ( this.settings.print_value ) {
+						value = checked.val();
+					} else {
+						value = checked.siblings('span:last-child').text();
+					}
 				}
 			} else if (this.field_is_checkbox($element)) {
 				$element.each(function () {
@@ -175,14 +179,26 @@
 							value += ', ';
 						}
 
-						value += $(this).siblings('span:last-child').text();
+						var multiselect = !! $(this).closest('.forminator-multiselect').length;
+
+						if ( self.settings.print_value ) {
+							value += $(this).val();
+						} else if ( multiselect ) {
+							value += $(this).closest('label').text();
+						} else {
+							value += $(this).siblings('span:last-child').text();
+						}
 					}
 				});
 
 			} else if (this.field_is_select($element)) {
 				checked = $element.find("option").filter(':selected');
 				if (checked.length) {
-					value = checked.text();
+					if ( this.settings.print_value ) {
+						value = checked.val();
+					} else {
+						value = checked.text();
+					}
 				}
 			} else if (this.field_is_upload($element)) {
 				value = $element.val().split('\\').pop();

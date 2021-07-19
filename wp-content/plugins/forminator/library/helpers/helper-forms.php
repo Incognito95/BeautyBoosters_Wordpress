@@ -4,33 +4,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Return the array of forms objects
- *
- * @since 1.0
- * @return mixed
- */
-function forminator_get_forms() {
-	$forminator = Forminator_Core::get_instance();
-
-	return $forminator->forms;
-}
-
-/**
- * Return specific form by ID
- *
- * @since 1.0
- *
- * @param $id
- *
- * @return bool
- */
-function forminator_get_form( $id ) {
-	$forms = forminator_get_forms();
-
-	return isset( $forms[ $id ] ) && ! empty( $forms[ $id ] ) ? $forms[ $id ] : false;
-}
-
-/**
  * Return local timestamp
  *
  * @since 1.0
@@ -141,39 +114,6 @@ function forminator_custom_forms() {
 }
 
 /**
- * Return custom forms modules
- *
- * @since 1.0
- * @since 1.6.3 add $status arg
- *
- * @param int          $limit
- * @param string|array $status status of cform
- *
- * @return mixed
- */
-function forminator_form_modules( $limit = 4, $status = '' ) {
-	$modules   = array();
-	$models    = Forminator_Form_Model::model()->get_models( $limit, $status );
-	$form_view = Forminator_Form_Views_Model::get_instance();
-
-	if ( ! empty( $models ) ) {
-		foreach ( $models as $model ) {
-			$modules[] = array(
-				'id'      => $model->id,
-				'title'   => $model->name,
-				'entries' => Forminator_Form_Entry_Model::count_entries( $model->id ),
-				'views'   => $form_view->count_views( $model->id ),
-				'date'    => date( get_option( 'date_format' ), strtotime( $model->raw->post_date ) ), // phpcs:ignore
-				'status'  => $model->status,
-				'name'    => forminator_get_name_from_model( $model ),
-			);
-		}
-	}
-
-	return $modules;
-}
-
-/**
  * Return conversion rate from module
  *
  * @since 1.0
@@ -213,39 +153,6 @@ function forminator_polls_forms() {
 }
 
 /**
- * Return polls modules
- *
- * @since 1.0
- * @since 1.6.3 add $status arg
- *
- * @param int          $limit
- * @param string|array $status
- *
- * @return array
- */
-function forminator_poll_modules( $limit = 4, $status = '' ) {
-	$modules   = array();
-	$models    = Forminator_Poll_Model::model()->get_models( $limit, $status );
-	$form_view = Forminator_Form_Views_Model::get_instance();
-
-	if ( ! empty( $models ) ) {
-		foreach ( $models as $model ) {
-			$modules[] = array(
-				'id'      => $model->id,
-				'title'   => $model->name,
-				'entries' => Forminator_Form_Entry_Model::count_entries( $model->id ),
-				'views'   => $form_view->count_views( $model->id ),
-				'date'    => date( get_option( 'date_format' ), strtotime( $model->raw->post_date ) ), // phpcs:ignore
-				'status'  => $model->status,
-				'name'    => forminator_get_name_from_model( $model ),
-			);
-		}
-	}
-
-	return $modules;
-}
-
-/**
  * Return total quizzes records
  *
  * @param string $status
@@ -268,42 +175,6 @@ function forminator_quizzes_forms() {
 }
 
 /**
- * Return polls modules
- *
- * @since 1.0
- * @since 1.6.3 add $status arg
- *
- * @param int          $limit
- * @param string|array $status
- *
- * @return array
- */
-function forminator_quiz_modules( $limit = 4, $status = '' ) {
-	$modules   = array();
-	$models    = Forminator_Quiz_Model::model()->get_models( $limit, $status );
-	$form_view = Forminator_Form_Views_Model::get_instance();
-
-	if ( ! empty( $models ) ) {
-		foreach ( $models as $model ) {
-			$modules[] = array(
-				'id'        => $model->id,
-				'title'     => $model->name,
-				'entries'   => Forminator_Form_Entry_Model::count_entries( $model->id ),
-				'views'     => $form_view->count_views( $model->id ),
-				'type'      => $model->quiz_type,
-				'date'      => date( get_option( 'date_format' ), strtotime( $model->raw->post_date ) ), // phpcs:ignore
-				'status'    => $model->status,
-				'name'      => forminator_get_name_from_model( $model ),
-				'has_leads' => isset( $model->settings['hasLeads'] ) ? $model->settings['hasLeads'] : false,
-				'leads_id'  => isset( $model->settings['leadsId'] ) ? $model->settings['leadsId'] : 0,
-			);
-		}
-	}
-
-	return $modules;
-}
-
-/**
  * Check if quiz has leads
  *
  * @since 1.14
@@ -311,7 +182,7 @@ function forminator_quiz_modules( $limit = 4, $status = '' ) {
  * @return bool
  */
 function forminator_quiz_has_leads( $model ) {
-	if ( isset( $model->settings['hasLeads'] ) && "true" === $model->settings['hasLeads'] ) {
+	if ( isset( $model->settings['hasLeads'] ) && in_array( $model->settings['hasLeads'], array( true, 'true' ), true ) ) {
 		return true;
 	}
 

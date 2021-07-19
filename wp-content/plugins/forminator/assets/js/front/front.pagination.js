@@ -29,9 +29,8 @@
 		this.$el = this.element;
 		this.totalSteps = 0;
 		this.step = 0;
+		this.finished = false;
 		this.hashStep = false;
-		this.next_button = window.ForminatorFront.cform.pagination_next;
-		this.prev_button = window.ForminatorFront.cform.pagination_prev;
 		this.next_button_txt = '';
 		this.prev_button_txt = '';
 		this.custom_label = [];
@@ -51,6 +50,8 @@
 	// Avoid Plugin.prototype conflicts
 	$.extend(ForminatorFrontPagination.prototype, {
 		init: function () {
+			this.next_button = this.settings.next_button ? this.settings.next_button : window.ForminatorFront.cform.pagination_next;
+			this.prev_button = this.settings.prev_button ? this.settings.prev_button : window.ForminatorFront.cform.pagination_prev;
 
 			if (this.$el.find('input[name=form_id]').length > 0) {
 				this.form_id = this.$el.find('input[name=form_id]').val();
@@ -58,12 +59,15 @@
 
 			this.totalSteps = this.settings.totalSteps;
 			this.step = this.settings.step;
+			this.quiz = this.settings.quiz;
 			this.element = this.$el.find('[data-step=' + this.step + ']').data('name');
 			if (this.form_id && typeof window.Forminator_Cform_Paginations === 'object' && typeof window.Forminator_Cform_Paginations[this.form_id] === 'object') {
 				this.custom_label = window.Forminator_Cform_Paginations[this.form_id];
 			}
 			if (this.settings.hashStep && this.step > 0) {
 				this.go_to(this.step, true);
+			} else if ( this.quiz ) {
+				this.go_to(0, true);
 			} else {
 				this.go_to(0, false);
 			}
@@ -75,11 +79,24 @@
 			this.update_buttons();
 			this.update_navigation();
 
+			this.$el.find('.forminator-button.forminator-button-back, .forminator-button.forminator-button-next, .forminator-button.forminator-button-submit').click(function (e) {
+				e.preventDefault();
+				$(this).trigger('forminator.front.pagination.move');
+			});
+
+			this.$el.on('click', '.forminator-result--view-answers', function(e){
+				e.preventDefault();
+				$(this).trigger('forminator.front.pagination.move');
+			});
+
 		},
 		init_events: function () {
 			var self = this;
 
 			this.$el.find('.forminator-button-back').on('forminator.front.pagination.move',function (e) {
+				self.handle_click('prev');
+			});
+			this.$el.on('forminator.front.pagination.move', '.forminator-result--view-answers', function (e) {
 				self.handle_click('prev');
 			});
 			this.$el.find('.forminator-button-next').on('forminator.front.pagination.move', function (e) {
@@ -96,10 +113,28 @@
 				self.on_form_reset(e);
 			});
 
+			this.$el.on('forminator:quiz:submit:success', function (e, ajaxData, formData, resultText) {
+				if ( resultText ) {
+					self.move_to_results(e);
+				}
+			});
+
 			this.$el.on('forminator.front.pagination.focus.input', function (e, input) {
 				self.on_focus_input(e, input);
 			});
 
+		},
+
+		/**
+		 * Move quiz to rezult page
+		 */
+		move_to_results: function (e) {
+			this.finished = true;
+			if ( this.$el.find('.forminator-submit-rightaway').length ) {
+				this.$el.find('#forminator-submit').removeClass('forminator-hidden');
+			} else {
+				this.handle_click('next');
+			}
 		},
 
 		/**
@@ -139,7 +174,7 @@
 			}
 
 			if ( this.$el.hasClass('forminator-design--material') ) {
-				footer_html = '<div class="forminator-pagination-footer">' +
+				footer_html = '<div class="forminator-pagination-footer" style="display: flex;">' +
 					'<button class="forminator-button forminator-button-back"><span class="forminator-button--mask" aria-label="hidden"></span><span class="forminator-button--text">' + this.prev_button_txt + '</span></button>' +
 					'<button class="forminator-button forminator-button-next"><span class="forminator-button--mask" aria-label="hidden"></span><span class="forminator-button--text">' + this.next_button_txt + '</span></button>';
 				if( this.custom_label[ 'has-paypal' ] === true ) {
@@ -150,7 +185,7 @@
 				this.$el.append( footer_html );
 
 			} else {
-				footer_html = '<div class="forminator-pagination-footer">' +
+				footer_html = '<div class="forminator-pagination-footer" style="display: flex;">' +
 					'<button class="forminator-button forminator-button-back">' + this.prev_button_txt + '</button>' +
 					'<button class="forminator-button forminator-button-next">' + this.next_button_txt + '</button>';
 				if( this.custom_label['has-paypal'] === true ) {
@@ -384,22 +419,24 @@
 					'justify-content': 'flex-end'
 				});
 				this.$el.find('.forminator-button-back').addClass( 'forminator-hidden' );
+				this.$el.find('.forminator-button-next').removeClass('forminator-hidden');
 			} else {
 				this.$el.find('.forminator-button-back').closest( '.forminator-pagination-footer' ).css({
-					'justify-content': ''
+					'justify-content': 'space-between'
 				});
-				this.$el.find('.forminator-button-back').removeClass('forminator-hidden');
+				this.$el.find('.forminator-button-back, .forminator-button-next').removeClass('forminator-hidden');
 			}
 
-			if (this.step === this.totalSteps) {
+			if (this.step === this.totalSteps && ! this.finished ) {
 				//keep pagination content on last step before submit
 				this.step--;
 				this.$el.submit();
 			}
 
-			if ( this.step === ( this.totalSteps - 1 ) ) {
+			if ( this.step === ( this.totalSteps - 1 ) && ! this.finished ) {
 
 				var submit_button_text = this.$el.find('.forminator-pagination-submit').html(),
+					loadingText = this.$el.find('.forminator-pagination-submit').data('loading'),
 					last_button_txt = ( this.custom_label[ 'pagination-labels' ] === 'custom'
 						&& this.custom_label['last-previous'] !== '' ) ? this.custom_label['last-previous'] : this.prev_button;
 
@@ -412,18 +449,27 @@
 						.addClass('forminator-button-submit')
 						.find('.forminator-button--text')
 						.html('')
-						.html(submit_button_text);
+						.html(submit_button_text).data('loading', loadingText);
 				} else {
 					this.$el.find('.forminator-button-back').html( last_button_txt );
 					this.$el.find( '.forminator-button-next' )
 						.removeClass( 'forminator-button-next' )
 						.attr( 'id', 'forminator-submit' )
 						.addClass( 'forminator-button-submit' )
-						.html( submit_button_text );
+						.html( submit_button_text ).data('loading', loadingText);
 				}
-				
+
+				var submitButton = this.$el.find( '.forminator-button-submit' );
+
+				if ( ! submit_button_text ) {
+					submitButton.addClass('forminator-hidden');
+					if ( this.$el.find( '.forminator-submit-rightaway').length ) {
+						submitButton.html( window.ForminatorFront.quiz.view_results );
+					}
+				}
+
 				if( this.custom_label['has-paypal'] === true ) {
-					this.$el.find('.forminator-button-submit').addClass('forminator-hidden');
+					submitButton.addClass('forminator-hidden');
 					this.$el.find('.forminator-payment')
 						.attr('id', 'forminator-paypal-submit');
 
@@ -444,6 +490,9 @@
 				}else{
 					this.prev_button_txt = this.prev_button;
 					this.next_button_txt = this.next_button;
+				}
+				if ( this.step === ( this.totalSteps - 1 ) && this.finished ) {
+					this.next_button_txt = window.ForminatorFront.quiz.view_results;
 				}
 				if ( this.$el.hasClass('forminator-design--material') ) {
 					this.$el.find( '#forminator-submit' )
@@ -471,6 +520,9 @@
 					this.$el.find( '.forminator-button-next' ).html( this.next_button_txt );
 
 				}
+				if ( this.step === this.totalSteps && this.finished ) {
+					this.$el.find('.forminator-button-next, .forminator-button-back').addClass( 'forminator-hidden' );
+				}
 			}
 			// Reset the conditions to check if submit/paypal buttons should be visible
 			this.$el.trigger( 'forminator.front.condition.restart' );
@@ -479,7 +531,7 @@
 		go_to: function (step, scrollToTop) {
 			this.step = step;
 
-			if (step === this.totalSteps) return false;
+			if (step === this.totalSteps && ! this.finished ) return false;
 
 			// Hide all parts
 			this.$el.find('.forminator-pagination').css({
@@ -521,6 +573,8 @@
 			this.$el.find( '.forminator-step-' + this.step ).attr( 'aria-selected', 'true' );
 			this.$el.find( '.forminator-step-' + this.step ).addClass( 'forminator-current' );
 
+			this.$el.find( '.forminator-pagination:not(:hidden)' ).find( '.forminator-answer input' ).first().trigger( 'change' );
+
 			this.calculate_bar_percentage();
 		},
 
@@ -530,6 +584,7 @@
 		 * Support Hustle Modal
 		 */
 		scroll_to_top_form: function () {
+			var self            = this;
 			var $element        = this.$el;
 			// find first input row
 			var first_input_row = this.$el.find('.forminator-row').not(':hidden').first();
@@ -550,11 +605,20 @@
 					parent_selector = '.wph-modal';
 				}
 
-				$(parent_selector).animate({scrollTop: ($element.offset().top - ($(window).height() - $element.outerHeight(true)) / 2)}, 500, function () {
+				$element.focus();
+
+				var scrollTop = ($element.offset().top - ($(window).height() - $element.outerHeight(true)) / 2);
+				if ( this.quiz ) {
+					scrollTop = $element.offset().top;
+					if ( $('#wpadminbar').length ) {
+						scrollTop -= 35;
+					}
+				}
+
+				$(parent_selector).animate({scrollTop: scrollTop}, 500, function () {
 					if (!$element.attr("tabindex")) {
 						$element.attr("tabindex", -1);
 					}
-					$element.focus();
 				});
 			}
 

@@ -691,6 +691,15 @@ function forminator_format_submitted_data_for_addon( $post_data, $files_data, $f
 					unset( $post_data[ $minutes_element_id ] );
 					unset( $post_data[ $ampm_element_id ] );
 				}
+			} elseif ( 'signature' === $form_field['type'] ) {
+				$fields_data = wp_list_pluck( $current_entry_fields, 'value', 'name' );
+				if ( ! empty( $form_field['element_id'] )
+					&& ! empty( $fields_data[ $form_field['element_id'] ] )
+					&& ! empty( $fields_data[ $form_field['element_id'] ]['file'] )
+					&& ! empty( $fields_data[ $form_field['element_id'] ]['file']['file_url'] )
+						) {
+					$formatted_post_data[ $form_field['element_id'] ] = $fields_data[ $form_field['element_id'] ]['file']['file_url'];
+				}
 			} elseif ( 'date' === $form_field['type'] ) {
 				$element_id       = $form_field['element_id'];
 				$day_element_id   = $element_id . '-day';

@@ -232,24 +232,29 @@ abstract class Forminator_Field {
 	 * @return string
 	 */
 	public static function get_description( $description, $get_id = '' ) {
-
 		$html = '';
+		$allowed_html = array();
 
 		if ( ! empty( $description ) ) {
-            $allowed_html = array(
-                'a'      => array(
-                    'href'   => true,
-                    'title'  => true,
-                    'target' => true,
-                    'rel'    => true,
-                ),
-                'span'   => array(
-                    'class' => true,
-                ),
-                'br'     => array(),
-                'em'     => array(),
-                'strong' => array(),
-            );
+			$allowed_html = apply_filters(
+				'forminator_field_description_allowed_html',
+				array(
+						'a'      => array(
+							'href'   => true,
+							'title'  => true,
+							'target' => true,
+							'rel'    => true,
+						),
+						'span'   => array(
+							'class' => true,
+					),
+					'br'     => array(),
+					'em'     => array(),
+					'strong' => array(),
+				),
+				$description,
+				$get_id
+			);
 
 			$html .= sprintf(
 				'<span class="forminator-description" aria-describedby="%s">%s</span>',
@@ -258,7 +263,13 @@ abstract class Forminator_Field {
 			);
 		}
 
-		return $html;
+		return apply_filters(
+			'forminator_field_description',
+			$html,
+			$description,
+			$get_id,
+			$allowed_html
+		);
 	}
 
 	/**
@@ -836,6 +847,12 @@ abstract class Forminator_Field {
 
 			$element_id  = $condition['element_id'];
 			$field_value = isset( $form_data[ $element_id ] ) ? $form_data[ $element_id ] : '';
+			if ( stripos( $element_id, 'upload-' ) !== false && ! isset( $form_data[ $element_id ] ) && isset( $form_data['forminator-multifile-hidden'] ) ) {
+				$form_upload_data = json_decode( stripslashes( $form_data['forminator-multifile-hidden'] ), true );
+				if ( $form_upload_data && isset( $form_upload_data[ $element_id ] ) ) {
+					$field_value = $form_upload_data[ $element_id ];
+				}
+			}
 
 			if ( stripos( $element_id, 'signature-' ) !== false ) {
 				// We have signature field
@@ -851,8 +868,7 @@ abstract class Forminator_Field {
 				}
 			} elseif ( stripos( $element_id, 'date-' ) !== false ) {
 				$date_value   = preg_replace( "/(\d+)\D+(\d+)\D+(\d+)/","$1/$2/$3", $form_data[ $element_id ] );
-				$is_condition_fulfilled = self::is_condition_fulfilled( $date_value, $condition );
-
+				$is_condition_fulfilled = self::is_condition_fulfilled( $date_value, $condition, $form_data['form_id'] );
 			} elseif ( stripos( $element_id, 'calculation-' ) !== false || stripos( $element_id, 'stripe-' ) !== false ) {
 				$is_condition_fulfilled = false;
 				if ( isset( $pseudo_submitted_data[ $element_id ] ) ) {
@@ -1071,6 +1087,10 @@ abstract class Forminator_Field {
         $normalized_format  = new Forminator_Date();
         $normalized_format  = $normalized_format->normalize_date_format( $date_format );
         $date               = date_create_from_format( $normalized_format, $form_field_value );
+
+		if ( false === $date ) {
+			$date = date_create_from_format( 'Y/m/d', $form_field_value );
+		}
 
 	     if ( 'D' === $format ) {
 	         // Day format is based on fields' visibility day format.

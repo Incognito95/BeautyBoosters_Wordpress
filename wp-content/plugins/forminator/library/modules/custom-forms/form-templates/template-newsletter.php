@@ -19,9 +19,9 @@ class Forminator_Template_Newsletter extends Forminator_Template {
 	public function defaults() {
 		return array(
 			'id'          => 'newsletter',
-			'name'        => __( 'Newsletter', 'forminator' ),
+			'name'        => __( 'Newsletter Signup', 'forminator' ),
 			'description' => __( "A simple contact form for your users to contact you", 'forminator' ),
-			'icon'        => 'send',
+			'icon'        => 'mail',
 			'priortiy'    => 4,
 		);
 	}

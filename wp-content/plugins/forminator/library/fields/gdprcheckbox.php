@@ -134,9 +134,9 @@ class Forminator_GdprCheckbox extends Forminator_Field {
 					$id
 				);
 
-				$html .= '<span aria-hidden="true"></span>';
+				$html .= '<span class="forminator-checkbox-box" aria-hidden="true"></span>';
 
-				$html .= sprintf( '<span>%s</span>', $description );
+				$html .= sprintf( '<span class="forminator-checkbox-label">%s</span>', $description );
 
 			$html .= '</label>';
 

@@ -100,10 +100,14 @@ function forminator_stripslashes_deep( $val ) {
  *
  * @return array|string
  */
-function forminator_sanitize_field( $field ) {
+function forminator_sanitize_field( &$field, $key = null ) {
+	if ( 'question_description' === $key ) {
+		return wp_kses_post( $field );
+	}
 	// If array map all fields
 	if ( is_array( $field ) ) {
-		return array_map( 'forminator_sanitize_field', $field );
+		array_walk( $field, 'forminator_sanitize_field' );
+		return $field;
 	}
 
 	return sanitize_text_field( $field );
@@ -466,15 +470,18 @@ function forminator_clear_field_id( $string ) {
  * @return mixed
  */
 function forminator_replace_form_data( $content, $data, Forminator_Form_Model $custom_form = null, Forminator_Form_Entry_Model $entry = null, $get_labels = false ) {
-	$matches     = array();
-	$fields      = forminator_fields_to_array();
-	$field_types = array_keys( $fields );
+	$matches          = array();
+	$fields           = forminator_fields_to_array();
+	$field_types      = array_keys( $fields );
+	$original_content = $content;
 
 	$content = forminator_replace_form_payment_data( $content, $custom_form, $entry );
 
 	$randomed_field_pattern  = 'field-\d+-\d+';
 	$increment_field_pattern = sprintf( '(%s)-\d+', implode( '|', $field_types ) );
 	$pattern                 = '/\{((' . $randomed_field_pattern . ')|(' . $increment_field_pattern . '))(\-[A-Za-z-_]+)?\}/';
+	$print_value             = ! empty( $custom_form->settings['print_value'] )
+			? filter_var( $custom_form->settings['print_value'], FILTER_VALIDATE_BOOLEAN ) : false;
 	// Find all field ID's
 	if ( preg_match_all( $pattern, $content, $matches ) ) {
 		if ( ! isset( $matches[0] ) || ! is_array( $matches[0] ) ) {
@@ -484,7 +491,7 @@ function forminator_replace_form_data( $content, $data, Forminator_Form_Model $c
 			$element_id = forminator_clear_field_id( $match );
 
 			// For HTML field we get the relevant field label instead of field value for select, radio and checkboxes and for them themselves.
-			if ( $get_labels && ( strpos( $element_id, 'radio' ) === 0
+			if ( $get_labels && ! $print_value && ( strpos( $element_id, 'radio' ) === 0
 					|| strpos( $element_id, 'select' ) === 0
 					|| strpos( $element_id, 'checkbox' ) === 0
 					) ) {
@@ -550,7 +557,7 @@ function forminator_replace_form_data( $content, $data, Forminator_Form_Model $c
 		}
 	}
 
-	return apply_filters( 'forminator_replace_form_data', $content, $data, $fields );
+	return apply_filters( 'forminator_replace_form_data', $content, $data, $fields, $original_content );
 }
 
 /**

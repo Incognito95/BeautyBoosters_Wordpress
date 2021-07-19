@@ -21,7 +21,7 @@ class Forminator_Template_Quote extends Forminator_Template {
 			'id'          => 'quote',
 			'name'        => __( 'Quote Request', 'forminator' ),
 			'description' => __( "A simple contact form for your users to contact you", 'forminator' ),
-			'icon'        => 'book',
+			'icon'        => 'clipboard-notes',
 			'priortiy'    => 3,
 		);
 	}
