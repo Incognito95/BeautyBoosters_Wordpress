@@ -24,8 +24,8 @@ Migrating the BeautyBoosters website from Wix over to Wordpress
 - add more spacing between image and container on om os page - ✅
 - make border lines thinner on vores team page - ✅
 - create 404 error page - ✅
-- Login with facebook / google - 🚀   (can only be done when the site is live)
-- Make Wordpress send to email using SMTP - 🚀   (can only be done when the site is live)
+- Login with facebook / google - 🚀 (can only be done when the site is live)
+- Make Wordpress send to email using SMTP - 🚀 (can only be done when the site is live)
 - Share tips & tricks to Facebook, Twitter, Linkedin & URL - 🚀
 - Change newsletter message when clicking subscribe - 🚀
 - Footer - put footer on every page - 🚀
