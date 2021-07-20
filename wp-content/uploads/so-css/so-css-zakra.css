@@ -17,7 +17,8 @@
   font-size: 120px;
 }
 
-.tg-page-header__title, .tg-page-header .breadcrumb-trail ul li {
+.tg-page-header__title,
+.tg-page-header .breadcrumb-trail ul li {
   display: none !important;
 }
 
@@ -26,7 +27,7 @@
 }
 
 #submit.submit {
-	float: right;
+  float: right;
 }
 
 .logged-in-as {
@@ -41,15 +42,24 @@ textarea {
   display: none;
 }
 
-#menu-item-3576 a, #menu-item-4680 a, #menu-item-4681 a {
-	color: white;
+#menu-item-3576 a,
+#menu-item-4680 a,
+#menu-item-4681 a {
+  color: white;
 }
 
-
 .entry-content a {
-		color: black;
+  color: black;
 }
 
 .tg-site-header-top ul.menu li a {
   color: white;
+}
+
+h2 {
+  -webkit-text-stroke: 1px black;
+}
+
+h1 {
+   -webkit-text-stroke: 1px white;
 }
