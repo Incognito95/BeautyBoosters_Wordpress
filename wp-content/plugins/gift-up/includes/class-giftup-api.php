@@ -173,12 +173,9 @@ class giftup_api
             $order_id = "(unknown)";
         }
 
-        $payload = [ 
-            'amount' => $rounded_value,
-            'reason' => "Redeemed against WooCommerce order id " . $order_id
-        ];
+        $reason = "Redeemed against WooCommerce order id " . $order_id;
 
-        $response = self::invoke( '/gift-cards/' . rawurlencode( $code ) . '/redeem', 'POST', $payload );
+        $response = self::invoke( '/gift-cards/' . rawurlencode( $code ) . '/redeem-woocommerce?amount=' . $rounded_value . '&reason=' . rawurlencode( $reason ), 'POST' );
         
         if ( $response->success ) {
             return $response->body['redeemedAmount'];

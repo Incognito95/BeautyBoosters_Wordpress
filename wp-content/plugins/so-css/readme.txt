@@ -1,9 +1,9 @@
 === SiteOrigin CSS ===
 Tags: css, visual css, css editor, design, customize
 Requires at least: 3.9
-Tested up to: 5.7
-Stable tag: 1.3.1
-Build time: 2021-07-10T12:38:53+02:00
+Tested up to: 5.8
+Stable tag: 1.3.2
+Build time: 2021-07-20T20:45:53+02:00
 License: GPLv2 or later
 Contributors: gpriday, alexgso
 Donate link: https://siteorigin.com/downloads/premium/
@@ -70,6 +70,9 @@ Free support is available on the [SiteOrigin support forums](https://siteorigin.
 SiteOrigin Premium includes access to our professional email support service, perfect for those times when you need fast and effective technical support. We're standing by to assist you in any way we can.
 
 == Changelog ==
+
+= 1.3.2 - 20 July 2021 =
+* Updated `Tested up to` tag.
 
 = 1.3.1 - 10 July 2021 =
 * Updated the Plugins page action link list.

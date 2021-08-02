@@ -325,7 +325,7 @@
 
 
 	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio {
-		font-size: 16px;
+		font-size: 14px;
 		font-family: inherit;
 		font-weight: 400;
 	}
@@ -335,27 +335,34 @@
 		color: #000000;
 	}
 
-	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio span[aria-hidden] {
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio .forminator-radio-bullet,
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio .forminator-radio-image {
 		border-color: #777771;
 		background-color: #EDEDED;
 	}
 
-	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio span[aria-hidden]:before {
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio .forminator-radio-bullet:before {
 		background-color: #17A8E3;
 	}
 
-	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio input:checked + span[aria-hidden] {
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio input:checked + .forminator-radio-bullet {
 		border-color: #17A8E3;
 		background-color: #EDEDED;
 	}
 
-	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-has_error .forminator-radio span[aria-hidden] {
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio:hover .forminator-radio-image,
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-radio input:checked ~ .forminator-radio-image {
+		border-color: #17A8E3;
+		background-color: #E1F6FF;
+	}
+
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-has_error .forminator-radio .forminator-radio-bullet {
 		border-color: #E04562;
 	}
 
 
 	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox {
-		font-size: 16px;
+		font-size: 14px;
 		font-family: inherit;
 		font-weight: 400;
 	}
@@ -365,18 +372,29 @@
 		color: #000000;
 	}
 
-	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox span[aria-hidden] {
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox .forminator-checkbox-box {
 		border-color: #777771;
 		background-color: #EDEDED;
 		color: #17A8E3;
 	}
 
-	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox input:checked + span[aria-hidden] {
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox .forminator-checkbox-image {
+		border-color: #777771;
+		background-color: #EDEDED;
+	}
+
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox input:checked + .forminator-checkbox-box {
 		border-color: #17A8E3;
 		background-color: #EDEDED;
 	}
 
-	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-has_error .forminator-checkbox span[aria-hidden] {
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox:hover .forminator-checkbox-image,
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-checkbox input:checked ~ .forminator-checkbox-image {
+		border-color: #17A8E3;
+		background-color: #E1F6FF;
+	}
+
+	.forminator-ui#forminator-module-3210.forminator-design--default .forminator-has_error .forminator-checkbox .forminator-checkbox-box {
 		border-color: #E04562;
 	}
 
@@ -954,4 +972,4 @@
 		border-color: #E04562;
 	}
 
-.forminator-ui.forminator-custom-form-3210 .forminator-input,.forminator-ui.forminator-custom-form-3210 .forminator-textarea{background: #FBCDCD !important;}
+.forminator-ui.forminator-custom-form-3210.forminator-design--default .forminator-input,.forminator-ui.forminator-custom-form-3210.forminator-design--default .forminator-textarea{background: #FBCDCD !important;}

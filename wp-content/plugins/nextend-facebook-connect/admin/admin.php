@@ -116,6 +116,8 @@ class NextendSocialLoginAdmin {
     public static function admin_init() {
 
         if (current_user_can('manage_options')) {
+            require_once(dirname(__FILE__).'/notice.php');
+
             if (!isset($_GET['page']) || $_GET['page'] != 'nextend-social-login' || !isset($_GET['view']) || $_GET['view'] != 'fix-redirect-uri') {
                 add_action('admin_notices', 'NextendSocialLoginAdmin::show_oauth_uri_notice');
             }

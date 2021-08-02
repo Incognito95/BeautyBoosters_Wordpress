@@ -101,6 +101,19 @@ class NextendSocialUserData {
             throw new NSLContinuePageRenderException('CUSTOM_REGISTER_FLOW');
         } else {
 
+            /**
+             * Jetpack removes our "Register" button in our Register flow, so we need to remove their scripts from there.
+             * @url https://wordpress.org/plugins/jetpack/
+             */
+            if (defined('JETPACK__PLUGIN_FILE')) {
+                if (class_exists('Jetpack_SSO') && method_exists('Jetpack_SSO', 'get_instance')) {
+                    remove_action('login_enqueue_scripts', array(
+                        Jetpack_SSO::get_instance(),
+                        'login_enqueue_scripts'
+                    ));
+                }
+            }
+
             if (!function_exists('login_header')) {
 
                 if (NextendSocialLogin::$WPLoginCurrentView == 'register-bp') {

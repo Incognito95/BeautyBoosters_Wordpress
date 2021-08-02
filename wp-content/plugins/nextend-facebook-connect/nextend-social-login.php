@@ -19,9 +19,9 @@ require_once(NSL_PATH . '/compat.php');
 
 class NextendSocialLogin {
 
-    public static $version = '3.0.28';
+    public static $version = '3.0.29';
 
-    public static $nslPROMinVersion = '3.0.28';
+    public static $nslPROMinVersion = '3.0.29';
 
     public static $proxyPage = false;
 
@@ -68,7 +68,11 @@ class NextendSocialLogin {
     public static $settings;
 
     private static $styles = array(
-        'default' => array(
+        'fullwidth' => array(
+            'container' => 'nsl-container-block-fullwidth',
+            'align'     => array()
+        ),
+        'default'   => array(
             'container' => 'nsl-container-block',
             'align'     => array(
                 'left',
@@ -76,7 +80,7 @@ class NextendSocialLogin {
                 'center',
             )
         ),
-        'icon'    => array(
+        'icon'      => array(
             'container' => 'nsl-container-inline',
             'align'     => array(
                 'left',
@@ -84,7 +88,7 @@ class NextendSocialLogin {
                 'center',
             )
         ),
-        'grid'    => array(
+        'grid'      => array(
             'container' => 'nsl-container-grid',
             'align'     => array(
                 'left',
@@ -809,11 +813,20 @@ class NextendSocialLogin {
      * @param bool              $unlink
      * @param string            $align
      * @param array|string      $providers
+     * @param string            $style
      *
      * @return string
      */
-    public static function renderLinkAndUnlinkButtons($heading = '', $link = true, $unlink = true, $align = "left", $providers = false) {
+    public static function renderLinkAndUnlinkButtons($heading = '', $link = true, $unlink = true, $align = "left", $providers = false, $style = "default") {
         if (count(self::$enabledProviders)) {
+
+            /**
+             * We shouldn't allow the icon style for Link and Unlink buttons
+             */
+            if ($style === 'icon') {
+                $style = 'default';
+            }
+
             $buttons = '';
             if ($heading !== false) {
                 if (empty($heading)) {
@@ -861,7 +874,7 @@ class NextendSocialLogin {
 
                 $buttons = '<div class="nsl-container-buttons">' . $buttons . '</div>';
 
-                return '<div class="nsl-container ' . self::$styles['default']['container'] . '" data-align="' . esc_attr($align) . '">' . $buttons . '</div>';
+                return '<div class="nsl-container ' . self::$styles[$style]['container'] . '"' . ($style !== 'fullwidth' ? ' data-align="' . esc_attr($align) . '"' : '') . '>' . $buttons . '</div>';
 
             }
         }
@@ -893,6 +906,7 @@ class NextendSocialLogin {
         }
 
         $atts = array_merge(array(
+            'style'    => 'default',
             'provider' => false,
             'login'    => 1,
             'link'     => 0,
@@ -914,7 +928,6 @@ class NextendSocialLogin {
             }
 
             $atts = array_merge(array(
-                'style'       => 'default',
                 'redirect'    => false,
                 'trackerdata' => false,
                 'labeltype'   => 'login'
@@ -927,7 +940,7 @@ class NextendSocialLogin {
         $unlink = filter_var($atts['unlink'], FILTER_VALIDATE_BOOLEAN);
 
         if ($link || $unlink) {
-            return self::renderLinkAndUnlinkButtons($atts['heading'], $link, $unlink, $atts['align'], $providers);
+            return self::renderLinkAndUnlinkButtons($atts['heading'], $link, $unlink, $atts['align'], $providers, $atts['style']);
         }
 
         return '';
@@ -985,7 +998,7 @@ class NextendSocialLogin {
 
             $buttons = '<div class="nsl-container-buttons">' . $buttons . '</div>';
 
-            $ret = '<div class="nsl-container ' . self::$styles[$style]['container'] . '" data-align="' . esc_attr($align) . '">' . $heading . $buttons . '</div>';
+            $ret = '<div class="nsl-container ' . self::$styles[$style]['container'] . '"' . ($style !== 'fullwidth' ? ' data-align="' . esc_attr($align) . '"' : '') . '>' . $heading . $buttons . '</div>';
             if (defined('DOING_AJAX') && DOING_AJAX) {
                 $id  = md5(uniqid('nsl-ajax-'));
                 $ret = '<div id="' . $id . '">' . $ret . '</div><script>window._nslDOMReady(function(){var socialButtonContainer=document.getElementById("' . $id . '");if(socialButtonContainer){var socialButtons=socialButtonContainer.querySelectorAll("a");socialButtons.forEach(function(el,i){var href=el.getAttribute("href");if(href.indexOf("?")===-1){href+="?"}else{href+="&"}
@@ -1200,7 +1213,7 @@ el.setAttribute("href",href+"redirect="+encodeURIComponent(window.location.href)
     }
 
     public static function bp_template_content() {
-        echo self::renderLinkAndUnlinkButtons(false);
+        echo self::renderLinkAndUnlinkButtons(false, true, true, NextendSocialLogin::$settings->get('buddypress_register_button_align'), false, NextendSocialLogin::$settings->get('buddypress_login_button_style'));
     }
 
     public static function getTrackerData() {

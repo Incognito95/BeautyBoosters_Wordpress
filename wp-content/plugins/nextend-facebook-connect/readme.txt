@@ -4,7 +4,7 @@ Tags: social login, facebook, google, twitter, linkedin, register, login, social
 Donate link: https://www.facebook.com/nextendweb
 Requires at least: 4.9
 Tested up to: 5.7.2
-Stable tag: 3.0.28
+Stable tag: 3.0.29
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -119,6 +119,14 @@ Using the Pro Addon you can set where the login buttons should appear on the Reg
 4. The Settings page of the Facebook provider.
 
 == Changelog ==
+
+= 3.0.29 =
+* Fix: We added clear: both; on .nsl-container to make floated elements before the buttons not to mess up the layout.
+* Fix: Jetpack removed the "Register" button in our register flow when the registration was handled over the WordPress default login page.
+* Improvement: The social buttons with the Default style will try to go as wide as the longest button, if there is enough space in the social button container element.
+* Feature: Fullwidth style for the social buttons.
+* Summer Sale offer
+
 
 = 3.0.28 =
 * Fix: We didn't display the disabled registration notification when the "OAuth redirect uri proxy page" feature was used.
