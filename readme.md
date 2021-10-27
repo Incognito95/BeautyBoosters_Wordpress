@@ -4,6 +4,5 @@
 Migrating the BeautyBoosters website from Wix over to Wordpress
 
 
-# BeautyBoosters re-design
-
+BeautyBoosters re-design
 <img src="BeautyBoosters.png">
